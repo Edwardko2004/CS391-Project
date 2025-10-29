@@ -1,2 +1,2 @@
 # CS391-Project
-Sprint 1
+All Sprints
