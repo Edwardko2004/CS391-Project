@@ -1,26 +1,22 @@
-import Image from "next/image";
-import Navbar from "./components/Navbar";
-import EventCard from "./components/Card";
-import Footer from "./components/Footer";
-
+import EventCards from "./components/Card";
 
 export default function Home() {
   return (
-    <>
-      <Navbar></Navbar>
-      
-      <main className="m-15 flex flex-col items-center">
-        <h1 className="text-4xl">Welcome to Spark! Bytes</h1>
-        <br></br>
-        <div>
-          <h2 className="text-2xl">Recent Events:</h2>
-          <EventCard></EventCard>
-        
-        </div>
-      </main>
-      <Footer></Footer>
-    </>
-      
-  
+    <div className="min-h-screen bg-black">
+      {/* Header */}
+      <div className="text-center py-12 bg-black">
+        <h1 className="text-4xl font-bold text-white mb-4">
+          Welcome to Spark! Bytes
+        </h1>
+        <p className="text-gray-400 text-lg">
+          Discover amazing food events around campus
+        </p>
+      </div>
+
+      {/* Events Section */}
+      <div className="bg-black">
+        <EventCards />
+      </div>
+    </div>
   );
 }

@@ -1,3 +1,16 @@
-export default function Footer(){
-    return(<footer className="absolute bottom-0 w-full text-center border-t border-white/10 text-gray-400 py-8 mt-10 bg-[#1D1E18]"><h1>Spark! @2025</h1></footer>)
+export default function Footer() {
+  return (
+    <footer className="bg-gray-900 text-white py-8 mt-12 border-t border-gray-700">
+      <div className="container mx-auto px-4">
+        <div className="text-center">
+          <p className="text-gray-400">
+            © 2024 Spark! Bytes. All rights reserved.
+          </p>
+          <p className="text-gray-500 text-sm mt-2">
+            Reducing food waste, one event at a time.
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
 }

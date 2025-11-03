@@ -1,18 +1,24 @@
-import "./globals.css"
+'use client'
 
-export const metadata = {
-  title: 'My App',
-  description: 'A clean Next.js starter',
-};
+import { AuthProvider } from './lib/session'
+import './globals.css'
+import Navbar from './components/Navbar'
+import Footer from './components/Footer'
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="bg-black">
+        <AuthProvider>
+          <Navbar />
+          <main>{children}</main>
+          <Footer />
+        </AuthProvider>
+      </body>
     </html>
-  );
+  )
 }
