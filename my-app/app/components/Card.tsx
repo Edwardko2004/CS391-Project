@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Input, Card, Row, Col, Tag, Tooltip, message } from 'antd';
 import { SearchOutlined, UserOutlined, FireOutlined, CheckCircleOutlined, ClockCircleOutlined, StopOutlined } from '@ant-design/icons';
-import { useAuth } from '../lib/session';
+import { useSupabaseAuth } from '../lib/SupabaseProvider';
 
 const { Search } = Input;
 
@@ -115,7 +115,7 @@ export default function EventCards() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [animatedCards, setAnimatedCards] = useState<number[]>([]);
-  const { user } = useAuth();
+  const { user } = useSupabaseAuth();
 
   useEffect(() => {
     // Trigger entrance animations

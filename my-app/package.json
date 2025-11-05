@@ -12,6 +12,7 @@
     "@ant-design/icons": "^6.1.0",
     "@auth/prisma-adapter": "^2.11.1",
     "@prisma/client": "^6.18.0",
+    "@supabase/supabase-js": "^2.79.0",
     "antd": "^5.27.6",
     "bcryptjs": "^3.0.2",
     "next": "16.0.0",
