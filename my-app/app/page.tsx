@@ -1,4 +1,5 @@
 import EventCards from "./components/Card";
+import Events from "./components/Events";
 
 export default function Home() {
   return (
@@ -15,7 +16,7 @@ export default function Home() {
 
       {/* Events Section */}
       <div className="bg-black">
-        <EventCards />
+        <Events />
       </div>
     </div>
   );
