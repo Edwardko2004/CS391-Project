@@ -18,32 +18,14 @@ export default function SignupPage() {
     const { data: signupData, error: signupError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: { first_name: firstName, last_name: lastName }, // store in user metadata
+      },
     })
-
     if (signupError) {
       alert(signupError.message)
       setLoading(false)
       return
-    }
-
-    // 2️⃣ Get user ID directly from signupData
-    const user = signupData.user
-
-    if (user) {
-      // 3️⃣ Create profile entry
-      const { error: insertError } = await supabase.from('profiles').upsert({
-        id: user.id,
-        email,
-        first_name: firstName,
-        last_name: lastName,
-      })
-
-      if (insertError) {
-        console.error('Profile insert error:', insertError)
-        alert('Error saving profile info.')
-      }
-    } else {
-      console.warn('User not returned yet — will be created after email verification.')
     }
 
     setLoading(false)
