@@ -33,7 +33,7 @@ export default function Navbar() {
     <nav className="flex justify-between bg-[#0BA698] p-10 text-2xl font-bold">
       <div className="left text-[#CFDACC]">
         <Link href="/">Home</Link>
-        <Link href="/create" className="m-5">Create</Link>
+        <Link href="/create-event" className="m-5">Create</Link>
       </div>
 
       <div className="text-[#CFDACC]">
