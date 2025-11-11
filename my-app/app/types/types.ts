@@ -3,7 +3,7 @@ export interface Event {
     id: number;
     title: string;
     description: string;
-    category: string;
+    categories: string[];
     location: string;
     organizer: string;
     status: string;

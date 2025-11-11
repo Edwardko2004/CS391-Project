@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, Col, Typography, Button, Progress, Row, Tag, Space } from "antd";
+import { Card, Col, Typography, Button, Progress, Row, Tag } from "antd";
 import { Event } from "../types/types";
 import { CheckCircleOutlined, ClockCircleOutlined, FireOutlined, StopOutlined } from "@ant-design/icons";
 
@@ -46,6 +46,17 @@ const EventCard: React.FC<EventCardProp> = ({ event }) => {
     const reservedPercent = (event.reserved_seats / event.capacity) * 100;
     const availability = availabilityInfo[getAvailability(reservedPercent)];
     const seatsLeft = event.capacity - event.reserved_seats;
+
+    // set of tags applicable to the event
+    const TagList = () => {
+        return (
+            <div style={{marginBottom:8}}>
+                {event.categories.map((tag, index) => (
+                    <Tag key={index}>{tag}</Tag>
+                ))}
+            </div>
+        )
+    }
 
     // component giving information of the status of an event
     const EventStatus = () => {
@@ -107,6 +118,7 @@ const EventCard: React.FC<EventCardProp> = ({ event }) => {
                 variant="borderless"
                 hoverable={true}
             >
+                <TagList />
                 <EventStatus />
                 <EventInfo />
                 <Button block>

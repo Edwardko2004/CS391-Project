@@ -1,9 +1,10 @@
 "use client"
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
-import { Input, Tag } from "antd";
+import { Input } from "antd";
 import EventList from "./EventList";
 import { Event } from "../types/types";
+import Tags from "./Tags";
 
 const { Search } = Input;
 
@@ -12,6 +13,7 @@ export default function Events() {
     const [events, setEvents] = useState<Event[]>([]);  // list of events from supabase
     const [doFetch, setDoFetch] = useState(true);       // temporary solution for dependency array
     const [isLoading, setIsLoading] = useState(false);  // if the query is still loading
+    const [tags, setTags] = useState<string[]>([]);     // tags used for category searching
     
     useEffect(() => {
         if (!doFetch) return;   // do not query if we dont have to
@@ -21,10 +23,14 @@ export default function Events() {
 
         // fetches data by querying supabase database
         async function fetchData() {
-            const {data, error} = await supabase
-            .from('events')
-            .select('*')
+            let query = supabase.from('events').select('*')
             .or(`title.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%,organizer.ilike.%${searchQuery}%`);
+
+            if (tags.length > 0) {
+                query = query.contains("categories", tags);
+            }
+
+            const {data, error} = await query;
 
             if (error) {
                 console.error('ERROR:', error);
@@ -44,8 +50,13 @@ export default function Events() {
         setDoFetch(true);
     }
 
+    const handleTags = (tags: string[]) => {
+        setTags(tags);
+        setDoFetch(true);
+    }
+
     return (
-        <div style={{padding:'64px'}}>
+        <div style={{padding:'64px', paddingTop:0}}>
             {/*search bar*/}
             <Search 
                 style={{padding:16}}
@@ -54,7 +65,8 @@ export default function Events() {
                 allowClear
                 enterButton
             />
-            {/*tags (not implemented yet)*/}
+            {/*tags*/}
+            <Tags tags={tags} onChange={handleTags} />
             {/*event listing, pass events into the list to display*/}
             <EventList events={events} loading={isLoading} />
         </div>

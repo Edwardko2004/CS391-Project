@@ -28,3 +28,7 @@ body {
 .cardinfo {
   color:#97a5adff;
 }
+
+.ant-card {
+  background-color: #000000 !important;
+}
