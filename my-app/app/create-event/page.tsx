@@ -1,135 +1,223 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "../lib/supabaseClient";
+import { useRouter } from "next/navigation";
 
 export default function CreateEventPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
   const [form, setForm] = useState({
     title: "",
+    location: "",
+    capacity: "",
+    status: "open",
+    description: "",
+    organizer: "",
+    reserved_seats: "",
+    tags: "",
     date: "",
     time: "",
-    location: "",
-    food: "",
-    quantity: "",
-    tags: "",
+    time_length: "",
+    
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Event created:", form);
-    alert("Event created! (UI only)");
+    const eventDateTime = new Date(`${form.date}T${form.time}`);
+
+    const tagArray =
+    form.tags.trim() !== ""
+      ? form.tags.split(",").map((tag) => tag.trim())
+      : [];
+
+    const { error } = await supabase.from("events").insert([
+      {
+        title: form.title,
+        location: form.location,
+        capacity: form.capacity ? parseInt(form.capacity) : null,
+        status: form.status,
+        created_at: new Date().toISOString(),
+        description: form.description || null,
+        organizer: form.organizer || null,
+        reserved_seats: form.reserved_seats
+          ? parseInt(form.reserved_seats)
+          : 0,
+        tags: tagArray,
+        time: eventDateTime.toISOString(),
+        time_length: form.time_length ? parseInt(form.time_length) : null,
+      },
+    ]);
+
+    if (error) {
+      console.error("Error creating event:", error);
+      alert("Error creating event: " + error.message);
+    } else {
+      alert("Event created successfully!");
+      setForm({
+        title: "",
+        location: "",
+        capacity: "",
+        status: "open",
+        description: "",
+        organizer: "",
+        reserved_seats: "",
+        tags: "",
+        date: "",
+        time: "",
+        time_length: "",
+      });
+    }
   };
+  
+  useEffect(() => {
+    const checkUser = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session) {
+        
+        router.push("/login");
+      } else {
+        setUser(session.user);
+      }
+      setLoading(false);
+    };
+
+    checkUser();
+  }, [router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black text-white">
+        Loading...
+      </div>
+    );
+  }
+
+  if (!user) return null;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-black py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 bg-gray-900 rounded-lg shadow-xl p-8 border border-gray-800">
-        <div>
-          <h2 className="mt-2 text-center text-3xl font-extrabold text-white">Create a New Event</h2>
-          <p className="mt-2 text-center text-sm text-gray-400">Share leftover food or campus event details so others can join.</p>
-        </div>
+        <h2 className="text-center text-3xl font-extrabold text-white">
+          Create a New Event
+        </h2>
+        <p className="text-center text-sm text-gray-400">
+          Share event details so others can join.
+        </p>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md -space-y-px">
-            <div className="mb-4">
-              <label htmlFor="title" className="sr-only">Event Title</label>
-              <input
-                id="title"
-                name="title"
-                value={form.title}
-                onChange={handleChange}
-                required
-                className="appearance-none block w-full px-3 py-2 border border-gray-700 placeholder-gray-500 bg-gray-800 text-white rounded-t-md focus:outline-none focus:ring-2 focus:ring-[#0BA698] focus:border-[#0BA698] sm:text-sm"
-                placeholder="Event title (e.g. Pizza Night at Warren Towers)"
-              />
-            </div>
+        <form className="mt-8 space-y-4" onSubmit={handleSubmit}>
+          <input
+            name="title"
+            value={form.title}
+            onChange={handleChange}
+            placeholder="Event Title"
+            required
+            className="w-full p-2 bg-gray-800 border border-gray-700 text-white rounded-md"
+          />
 
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div>
-                <label htmlFor="date" className="sr-only">Date</label>
-                <input
-                  id="date"
-                  type="date"
-                  name="date"
-                  value={form.date}
-                  onChange={handleChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-700 placeholder-gray-500 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-[#0BA698] focus:border-[#0BA698] sm:text-sm"
-                />
-              </div>
-              <div>
-                <label htmlFor="time" className="sr-only">Time</label>
-                <input
-                  id="time"
-                  type="time"
-                  name="time"
-                  value={form.time}
-                  onChange={handleChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-700 placeholder-gray-500 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-[#0BA698] focus:border-[#0BA698] sm:text-sm"
-                />
-              </div>
-            </div>
+          <textarea
+            name="description"
+            value={form.description}
+            onChange={handleChange}
+            placeholder="Event Description"
+            className="w-full p-2 bg-gray-800 border border-gray-700 text-white rounded-md"
+          />
 
-            <div className="mb-4">
-              <label htmlFor="location" className="sr-only">Location</label>
-              <input
-                id="location"
-                name="location"
-                value={form.location}
-                onChange={handleChange}
-                required
-                className="appearance-none block w-full px-3 py-2 border border-gray-700 placeholder-gray-500 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-[#0BA698] focus:border-[#0BA698] sm:text-sm"
-                placeholder="Location (e.g. CAS Lobby)"
-              />
-            </div>
+          <input
+            name="organizer"
+            value={form.organizer}
+            onChange={handleChange}
+            placeholder="Organizer Name"
+            className="w-full p-2 bg-gray-800 border border-gray-700 text-white rounded-md"
+          />
 
-            <div className="mb-4">
-              <label htmlFor="food" className="sr-only">Food Description</label>
-              <input
-                id="food"
-                name="food"
-                value={form.food}
-                onChange={handleChange}
-                className="appearance-none block w-full px-3 py-2 border border-gray-700 placeholder-gray-500 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-[#0BA698] focus:border-[#0BA698] sm:text-sm"
-                placeholder="Food description (e.g. Cheese Pizza, Soda, Cookies)"
-              />
-            </div>
+          <input
+            name="location"
+            value={form.location}
+            onChange={handleChange}
+            placeholder="Location (e.g. CAS Lobby)"
+            required
+            className="w-full p-2 bg-gray-800 border border-gray-700 text-white rounded-md"
+          />
 
-            <div className="mb-4">
-              <label htmlFor="quantity" className="sr-only">Quantity Available</label>
-              <input
-                id="quantity"
-                type="number"
-                name="quantity"
-                value={form.quantity}
-                onChange={handleChange}
-                className="appearance-none block w-full px-3 py-2 border border-gray-700 placeholder-gray-500 bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-[#0BA698] focus:border-[#0BA698] sm:text-sm"
-                placeholder="Quantity available (e.g. 50)"
-              />
-            </div>
-
-            <div className="mb-4">
-              <label htmlFor="tags" className="sr-only">Dietary Tags</label>
-              <input
-                id="tags"
-                name="tags"
-                value={form.tags}
-                onChange={handleChange}
-                className="appearance-none block w-full px-3 py-2 border border-gray-700 placeholder-gray-500 bg-gray-800 text-white rounded-b-md focus:outline-none focus:ring-2 focus:ring-[#0BA698] focus:border-[#0BA698] sm:text-sm"
-                placeholder="Dietary tags (e.g. vegetarian, gluten-free)"
-              />
-            </div>
+          <div className="grid grid-cols-2 gap-4">
+            <input
+              type="date"
+              name="date"
+              value={form.date}
+              onChange={handleChange}
+              required
+              className="w-full p-2 bg-gray-800 border border-gray-700 text-white rounded-md"
+            />
+            <input
+              type="time"
+              name="time"
+              value={form.time}
+              onChange={handleChange}
+              required
+              className="w-full p-2 bg-gray-800 border border-gray-700 text-white rounded-md"
+            />
           </div>
 
-          <div>
-            <button
-              type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#0BA698] hover:bg-[#08957d] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0BA698]"
-            >
-              Create Event
-            </button>
+          <div className="grid grid-cols-2 gap-4">
+            <input
+              type="number"
+              name="capacity"
+              value={form.capacity}
+              onChange={handleChange}
+              placeholder="Capacity"
+              className="w-full p-2 bg-gray-800 border border-gray-700 text-white rounded-md"
+            />
+            <input
+              type="number"
+              name="reserved_seats"
+              value={form.reserved_seats}
+              onChange={handleChange}
+              placeholder="Reserved Seats"
+              className="w-full p-2 bg-gray-800 border border-gray-700 text-white rounded-md"
+            />
           </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <input
+              type="number"
+              name="time_length"
+              value={form.time_length}
+              onChange={handleChange}
+              placeholder="Duration (minutes)"
+              className="w-full p-2 bg-gray-800 border border-gray-700 text-white rounded-md"
+            />
+            <input
+              name="status"
+              value={form.status}
+              onChange={handleChange}
+              placeholder="Status (e.g. open)"
+              className="w-full p-2 bg-gray-800 border border-gray-700 text-white rounded-md"
+            />
+          </div>
+
+          <input
+            name="tags"
+            value={form.tags}
+            onChange={handleChange}
+            placeholder="Tags (comma separated)"
+            className="w-full p-2 bg-gray-800 border border-gray-700 text-white rounded-md"
+          />
+
+          <button
+            type="submit"
+            className="w-full py-2 bg-[#0BA698] text-white font-semibold rounded-md hover:bg-[#08957d]"
+          >
+            Create Event
+          </button>
         </form>
       </div>
     </div>
