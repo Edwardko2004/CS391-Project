@@ -1,11 +1,13 @@
 "use client"
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
-import { Input, Select } from "antd";
+import { Input, Select, DatePicker } from "antd";
 import EventList from "./EventList";
 import { Event } from "../types/types";
 import Tags from "./Tags";
+import dayjs, { Dayjs } from 'dayjs';
 
+const now: Dayjs = dayjs();
 const { Search } = Input;
 
 // the corresponding sorting functions
@@ -23,6 +25,8 @@ export default function Events() {
     const [isLoading, setIsLoading] = useState(false);  // if the query is still loading
     const [tags, setTags] = useState<string[]>([]);     // tags used for category searching
     const [sortBy, setSortBy] = useState("soonest");    // sortby type for the query
+    const [minDate, setMinDate] = useState<string|null>(null);         // the minimum date for events
+    const [maxDate, setMaxDate] = useState<string|null>(null);         // the maximum date for events
     
     useEffect(() => {
         if (!doFetch) return;   // do not query if we dont have to
@@ -37,6 +41,14 @@ export default function Events() {
 
             if (tags.length > 0) {
                 query = query.contains('tags', tags);
+            }
+
+            if (minDate) {
+                query = query.gte('time', minDate);
+            }
+
+            if (maxDate) {
+                query = query.lte('time', maxDate);
             }
 
             const {data, error} = await query;
@@ -61,6 +73,7 @@ export default function Events() {
 
     // handle the tag system to query
     const handleTags = (tags: string[]) => {
+        console.log("handling tags")
         setTags(tags);
         setDoFetch(true);
     }
@@ -68,6 +81,26 @@ export default function Events() {
     // handle the sort select component
     const handleSortSelect = (sort: string) => {
         setSortBy(sort);
+        setDoFetch(true);
+    }
+
+    // handle the mindate changes
+    const handleMinDate = (date: Dayjs, dateString: string | string[]): void => {
+        if (Array.isArray(dateString)) {
+            setMinDate(dateString.join(' to '));
+        } else {
+            setMinDate(dateString);
+        }
+        setDoFetch(true);
+    }
+
+    // handle the mindate changes
+    const handleMaxDate = (date: Dayjs, dateString: string | string[]): void => {
+        if (Array.isArray(dateString)) {
+            setMaxDate(dateString.join(' to '));
+        } else {
+            setMaxDate(dateString);
+        }
         setDoFetch(true);
     }
 
@@ -91,6 +124,16 @@ export default function Events() {
                     { value: 'emptiest', label: 'Sort by emptiest' },
                     { value: 'fullest', label: 'Sort by fullest' },
                 ]}
+            />
+            <DatePicker
+                showTime
+                onChange={handleMinDate}
+                placeholder="Minimum time"
+            />
+            <DatePicker
+                showTime
+                onChange={handleMaxDate}
+                placeholder="Maximum time"
             />
             <Tags tags={tags} onChange={handleTags} />
             {/*event listing, pass events into the list to display*/}
