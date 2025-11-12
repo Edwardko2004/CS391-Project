@@ -10,7 +10,7 @@ export default function Home() {
           Welcome to Spark! Bytes
         </h1>
         <p className="text-gray-400 text-lg">
-          Discover amazing food events around campus
+          Discover amazing food events around campus.
         </p>
       </div>
 

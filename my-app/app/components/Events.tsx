@@ -1,7 +1,7 @@
 "use client"
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
-import { Input } from "antd";
+import { Input, Select } from "antd";
 import EventList from "./EventList";
 import { Event } from "../types/types";
 import Tags from "./Tags";
@@ -14,6 +14,8 @@ export default function Events() {
     const [doFetch, setDoFetch] = useState(true);       // temporary solution for dependency array
     const [isLoading, setIsLoading] = useState(false);  // if the query is still loading
     const [tags, setTags] = useState<string[]>([]);     // tags used for category searching
+    const [sortBy, setSortBy] = useState('');           // sortby type for the query
+    const [tagInclude, setTagInclude] = useState(true); // whether the tags include or exclude results
     
     useEffect(() => {
         if (!doFetch) return;   // do not query if we dont have to
@@ -27,14 +29,14 @@ export default function Events() {
             .or(`title.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%,organizer.ilike.%${searchQuery}%`);
 
             if (tags.length > 0) {
-                query = query.contains("categories", tags);
+                query = query.contains("tags", tags);
             }
 
             const {data, error} = await query;
 
             if (error) {
                 console.error('ERROR:', error);
-            } else{
+            } else {
                 setEvents(data||[]);
             }
 
@@ -57,15 +59,23 @@ export default function Events() {
 
     return (
         <div style={{padding:'64px', paddingTop:0}}>
-            {/*search bar*/}
+            {/*querying systems*/}
+            {/*im not gonna bother styling it for now, ill leave it up to the frontend developers -aidan*/}
             <Search 
-                style={{padding:16}}
                 placeholder="Search for events, organizations, or locations"
                 onSearch={handleSearch}
                 allowClear
                 enterButton
             />
-            {/*tags*/}
+            <Select
+                defaultValue="soonest"
+                options={[
+                    { value: 'soonest', label: 'Sort by soonest' },
+                    { value: 'latest', label: 'Sort by latest' },
+                    { value: 'emptiest', label: 'Sort by emptiest' },
+                    { value: 'fullest', label: 'Sort by fullest' },
+                ]}
+            />
             <Tags tags={tags} onChange={handleTags} />
             {/*event listing, pass events into the list to display*/}
             <EventList events={events} loading={isLoading} />

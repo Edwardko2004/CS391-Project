@@ -1,7 +1,16 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import { Input, Tag, Flex } from "antd";
+import { Input, Tag, Flex, Select } from "antd";
+import type { SelectProps } from 'antd';
+import tags from "../lib/tag";
+
 const { Search } = Input;
+type TagRender = SelectProps['tagRender'];
+
+// create a list of tag options for the tag selector
+const options: SelectProps['options'] = Object.keys(tags).map(key => ({
+    value: key,
+}));
 
 // props for the tags component
 interface TagsProp {
@@ -11,61 +20,38 @@ interface TagsProp {
 
 // returns the tags component for searching
 const Tags: React.FC<TagsProp> = ({ tags, onChange }) => {
-    const [input, setInput] = useState('');
-
-    // handle when deleting tags
-    const handleClose = (removed: string) => {
-        const new_tags = tags.filter(tag => tag != removed);
-        onChange(new_tags);
-    };
-
-    // check if a tag can be added (not empty and unique)
-    const canAddTag = (input: string) => {
-        if (input === "" || tags.includes(input)) return false;
-
-        return true;
+    const handleChange = (values: string[]) => {
+        onChange(values);
     }
 
-    // handle tag input search bar
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setInput(e.target.value);
-    }
+    const tagRender: TagRender = (props) => {
+        const { label, closable, onClose } = props;
+        const onPreventMouseDown = (event: React.MouseEvent<HTMLSpanElement>) => {
+            event.preventDefault();
+            event.stopPropagation();
+        };
 
-    // handle submit of a tag to add it
-    const handleSubmit = (input: string) => {
-        setInput('');
-
-        if (!canAddTag(input)) return;
-
-        const new_tags = [...tags, input];
-        onChange(new_tags);
+        return (
+            <Tag
+                onMouseDown={onPreventMouseDown}
+                closable={closable}
+                onClose={onClose}
+            >
+                {label}
+            </Tag>
+        )
     }
 
     return (
-        <div style={{marginBottom:16}}>
-            <Flex justify="center">
-                <Search
-                    placeholder="Enter category tags here"
-                    value={input}
-                    onChange={handleChange}
-                    onSearch={handleSubmit}
-                    enterButton
-                    style={{width:300}}
-                />
-            </Flex>
-            <Flex justify="center" wrap="wrap">
-                {tags.map((tag) => (
-                    <Tag 
-                        key={tag}
-                        closable
-                        onClose={() => handleClose(tag)}
-                        style={{margin:4}}
-                    >
-                        {tag}
-                    </Tag>
-                ))}
-            </Flex>
-        </div>
+        <Select 
+            style={{width:'100%'}}
+            mode="multiple"
+            tagRender={tagRender}
+            placeholder="Select tags"
+            value={tags}
+            onChange={handleChange}
+            options={options}
+        />
     );
 }
 

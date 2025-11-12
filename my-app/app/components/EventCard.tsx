@@ -2,6 +2,8 @@ import React from "react";
 import { Card, Col, Typography, Button, Progress, Row, Tag } from "antd";
 import { Event } from "../types/types";
 import { CheckCircleOutlined, ClockCircleOutlined, FireOutlined, StopOutlined } from "@ant-design/icons";
+import { format } from "path";
+import tags from "../lib/tag";
 
 // store some style data for specific event status
 const availabilityInfo = {
@@ -36,6 +38,10 @@ const getAvailability = (percent: number) => {
     return "out"
 }
 
+const getFoodColor = (tag: string) => {
+    return tags[tag as keyof typeof tags] || tags.other;
+};
+
 // props for the event card
 interface EventCardProp {
     event: Event;
@@ -46,13 +52,19 @@ const EventCard: React.FC<EventCardProp> = ({ event }) => {
     const reservedPercent = (event.reserved_seats / event.capacity) * 100;
     const availability = availabilityInfo[getAvailability(reservedPercent)];
     const seatsLeft = event.capacity - event.reserved_seats;
+    const date = new Date(event.time);
 
     // set of tags applicable to the event
     const TagList = () => {
         return (
             <div style={{marginBottom:8}}>
-                {event.categories.map((tag, index) => (
-                    <Tag key={index}>{tag}</Tag>
+                {event.tags.map((tag, index) => (
+                    <Tag
+                        key={index}
+                        color={getFoodColor(tag).color}
+                    >
+                        {tag}
+                    </Tag>
                 ))}
             </div>
         )
@@ -95,13 +107,37 @@ const EventCard: React.FC<EventCardProp> = ({ event }) => {
 
     // component for displaying event info
     const EventInfo = () => {
+        const formatted_date = date.toLocaleDateString('en-US', {
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric',
+        });
+
+        const formatted_time = date.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true,
+        });
+
+        const end_date = new Date(event.time);
+        end_date.setMinutes(end_date.getMinutes() + event.time_length);
+
+        const formatted_endtime = end_date.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true,
+        });
+
         return (
             <Typography.Paragraph style={{color:"#FFFFFF"}}>
                 <br />
                 <p>{event.description}</p>
                 <p><strong className="cardinfo">Organizer: </strong>{event.organizer}</p>
                 <p><strong className="cardinfo">Location: </strong>{event.location}</p>
-                <p><strong className="cardinfo">Time: </strong>{event.time}</p>
+                <p>
+                    <strong className="cardinfo">Time: </strong>
+                    {formatted_date}, {formatted_time} to {formatted_endtime}
+                </p>
             </Typography.Paragraph>
         )
     }

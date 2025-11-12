@@ -35,7 +35,7 @@ export default function SignupPage() {
   return (
     <form
       onSubmit={handleSignup}
-      className="flex flex-col gap-3 max-w-md mx-auto mt-20"
+      className="flex flex-col gap-3 max-w-md mx-auto mt-20 mb-20"
     >
       <h1 className="text-2xl font-bold mb-4">Create Account</h1>
 
