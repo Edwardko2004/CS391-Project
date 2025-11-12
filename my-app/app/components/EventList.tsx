@@ -12,6 +12,7 @@ interface EventListProp {
 // returns a grid/list of eventcards
 const EventList: React.FC<EventListProp> = ({ events, loading }) => {
     // return something else if we are loading (placeholder component)
+    // PLEASE IMPLEMENT A NICER COMPONENT FOR LOADING, FRONTEND DEVELOPERS
     if (loading) {
         return (
             <Space style={{width: '100%', justifyContent: 'center'}}>
@@ -21,6 +22,7 @@ const EventList: React.FC<EventListProp> = ({ events, loading }) => {
     }
 
     // if there are no events found, tell the user (placeholder component)
+    // PLEASE IMPLEMENT A NICER COMPONENT FOR NO RESULTS, FRONTEND DEVELOPERS
     if (events.length == 0) {
         return (
             <Space style={{width: '100%', justifyContent: 'center'}}>

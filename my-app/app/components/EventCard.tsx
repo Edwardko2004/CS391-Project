@@ -151,8 +151,6 @@ const EventCard: React.FC<EventCardProp> = ({ event }) => {
                 }}
                 title={event.title}
                 extra={<StatusIcon />}
-                variant="borderless"
-                hoverable={true}
             >
                 <TagList />
                 <EventStatus />

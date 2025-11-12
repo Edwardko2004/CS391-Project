@@ -1,13 +1,28 @@
 'use client'
 
-import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useSupabaseAuth } from '../lib/SupabaseProvider'
+import { Layout, Menu } from 'antd'
+import { useRouter, usePathname } from 'next/navigation';
+import { MenuInfo } from 'rc-menu/lib/interface';
+const { Header } = Layout;
+
+// the list of nav items
+const navItems: { key: string; label: string; href: string }[] = [
+  {key: "0", label: "Home", href: "/"},
+  {key: "1", label: "Create", href: "/create-event"},
+  {key: "2", label: "Sign up", href: "/signup"},
+  {key: "3", label: "Log in", href: "/login"},
+]
 
 export default function Navbar() {
   const { user, signOut, loading } = useSupabaseAuth()
   const [firstName, setFirstName] = useState<string | null>(null)
+
+  const router = useRouter();
+  const pathname = usePathname();
+  const selectedKey = navItems.findIndex((item) => item.href === pathname).toString();
 
   // Fetch profile once user is logged in
   useEffect(() => {
@@ -29,40 +44,26 @@ export default function Navbar() {
     fetchProfile()
   }, [user])
 
-  return (
-    <nav className="flex justify-between bg-[#0BA698] p-10 text-2xl font-bold">
-      <div className="left text-[#CFDACC]">
-        <Link href="/">Home</Link>
-        <Link href="/create-event" className="m-5">Create</Link>
-      </div>
+  // handle clicking new nav link
+  const handleClick = (e: MenuInfo) => {
+    const key = parseInt(e.key);
+    if (key < 0 || key >= navItems.length) return;
+    router.push(navItems[key].href);
+  }
 
-      <div className="text-[#CFDACC]">
-        {loading ? (
-          <span>Loading...</span>
-        ) : user ? (
-          <>
-            <span className="m-5">
-              Welcome{firstName ? `, ${firstName}` : `, ${user.email}`}
-            </span>
-            <button
-              onClick={signOut}
-              className="underline hover:text-white"
-            >
-              Log out
-            </button>
-          </>
-        ) : (
-          <>
-            <Link href="/signup" className="m-5 hover:text-white">
-              Sign up
-            </Link>
-            <Link href="/login" className="hover:text-white">
-              Log in
-            </Link>
-          </>
-        )}
-      </div>
-    </nav>
+  return (
+    <div className="border-b border-gray-800">
+      <Header>
+        <Menu
+          onClick={handleClick}
+          theme="dark"
+          mode="horizontal"
+          selectedKeys={[selectedKey]}
+          defaultSelectedKeys={['0']}
+          items={navItems}
+          style={{flex:1, minWidth:0}}
+        />
+      </Header>
+    </div>
   )
 }
-

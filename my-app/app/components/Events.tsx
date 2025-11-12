@@ -8,14 +8,21 @@ import Tags from "./Tags";
 
 const { Search } = Input;
 
+// the corresponding sorting functions
+const sortFunctions: Record<string, (a: Event, b: Event) => number> = {
+    "soonest": (a: Event, b: Event) => new Date(a.time).getMinutes() - new Date(b.time).getMinutes(),
+    "latest": (a: Event, b: Event) => new Date(b.time).getMinutes() - new Date(a.time).getMinutes(),
+    "fullest": (a: Event, b: Event) => (b.reserved_seats / b.capacity) - (a.reserved_seats / a.capacity),
+    "emptiest": (a: Event, b: Event) => (a.reserved_seats / a.capacity) - (b.reserved_seats / b.capacity),
+}
+
 export default function Events() {
     const [searchQuery, setSearchQuery] = useState('')  // search query for database
     const [events, setEvents] = useState<Event[]>([]);  // list of events from supabase
     const [doFetch, setDoFetch] = useState(true);       // temporary solution for dependency array
     const [isLoading, setIsLoading] = useState(false);  // if the query is still loading
     const [tags, setTags] = useState<string[]>([]);     // tags used for category searching
-    const [sortBy, setSortBy] = useState('');           // sortby type for the query
-    const [tagInclude, setTagInclude] = useState(true); // whether the tags include or exclude results
+    const [sortBy, setSortBy] = useState("soonest");    // sortby type for the query
     
     useEffect(() => {
         if (!doFetch) return;   // do not query if we dont have to
@@ -29,7 +36,7 @@ export default function Events() {
             .or(`title.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%,organizer.ilike.%${searchQuery}%`);
 
             if (tags.length > 0) {
-                query = query.contains("tags", tags);
+                query = query.contains('tags', tags);
             }
 
             const {data, error} = await query;
@@ -37,13 +44,13 @@ export default function Events() {
             if (error) {
                 console.error('ERROR:', error);
             } else {
-                setEvents(data||[]);
+                setEvents(data.sort(sortFunctions[sortBy])||[]);
             }
 
             setIsLoading(false);
         }
 
-        fetchData()
+        fetchData();
     }, [doFetch])
 
     // function to handle search query
@@ -52,8 +59,15 @@ export default function Events() {
         setDoFetch(true);
     }
 
+    // handle the tag system to query
     const handleTags = (tags: string[]) => {
         setTags(tags);
+        setDoFetch(true);
+    }
+
+    // handle the sort select component
+    const handleSortSelect = (sort: string) => {
+        setSortBy(sort);
         setDoFetch(true);
     }
 
@@ -69,6 +83,8 @@ export default function Events() {
             />
             <Select
                 defaultValue="soonest"
+                value={sortBy}
+                onChange={handleSortSelect}
                 options={[
                     { value: 'soonest', label: 'Sort by soonest' },
                     { value: 'latest', label: 'Sort by latest' },

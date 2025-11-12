@@ -30,5 +30,18 @@ body {
 }
 
 .ant-card {
-  background-color: #000000 !important;
+  background-color: #2d3748 !important;
+  border-color: #2d3748;
+}
+
+.ant-layout-header {
+  background-color: #111827;
+}
+
+.ant-menu {
+  background-color: #111827;
+}
+
+.ant-menu-item-selected {
+  background-color: #08957d !important;
 }
