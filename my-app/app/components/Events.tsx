@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { Input, Select, DatePicker, Spin } from "antd";
-import EventList from "./EventList";
+import EventsHandler from "./EventsHandler";
 import { Event } from "../types/types";
 import Tags from "./Tags";
 import dayjs, { Dayjs } from 'dayjs';
@@ -104,18 +104,7 @@ export default function Events() {
           <Tags tags={tags} onChange={handleTags} />
         </div>
       </div>
-
-      {isLoading ? (
-        <div className="flex justify-center items-center h-64">
-          <Spin size="large" />
-        </div>
-      ) : events.length === 0 ? (
-        <div className="flex justify-center items-center h-64 text-gray-400 text-lg">
-          No events found. Try adjusting your filters.
-        </div>
-      ) : (
-        <EventList events={events} loading={isLoading} />
-      )}
+      <EventsHandler events={events} loading={isLoading} />
     </div>
   );
 }

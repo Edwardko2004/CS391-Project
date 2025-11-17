@@ -40,9 +40,10 @@ const getFoodColor = (tag: string) => {
 
 interface EventCardProp {
   event: Event;
+  handleReserve: (e: Event) => void;
 }
 
-const EventCard: React.FC<EventCardProp> = ({ event }) => {
+const EventCard: React.FC<EventCardProp> = ({ event, handleReserve }) => {
   const reservedPercent = (event.reserved_seats / event.capacity) * 100;
   const availability = availabilityInfo[getAvailability(reservedPercent)];
   const seatsLeft = event.capacity - event.reserved_seats;
@@ -129,6 +130,10 @@ const EventCard: React.FC<EventCardProp> = ({ event }) => {
     );
   };
 
+  const handleClick = () => {
+    handleReserve(event);
+  }
+
   return (
     <Col xs={24} sm={12} md={8}>
       <Card
@@ -140,7 +145,11 @@ const EventCard: React.FC<EventCardProp> = ({ event }) => {
         <TagList />
         <EventStatus />
         <EventInfo />
-        <Button block className="bg-[#0BA698] text-white font-semibold hover:bg-[#08957d] mt-4">
+        <Button 
+          block
+          className="bg-[#0BA698] text-white font-semibold hover:bg-[#08957d] mt-4"
+          onClick={handleClick}
+        >
           Reserve a seat
         </Button>
       </Card>

@@ -11,5 +11,14 @@ export interface Event {
     capacity: number;
     time: string;
     time_length: number;
-    create_at: string;
+    created_at: string;
+}
+
+// define the Profile type and its fields
+export interface Profile {
+    id: number;
+    first_name: string;
+    last_name: string;
+    email: string;
+    created_at: string;
 }
