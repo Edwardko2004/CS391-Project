@@ -1,8 +1,14 @@
 import React from "react";
 import { Card, Col, Typography, Button, Progress, Row, Tag } from "antd";
 import { Event } from "../types/types";
-import { CheckCircleOutlined, ClockCircleOutlined, FireOutlined, StopOutlined } from "@ant-design/icons";
+import {
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  FireOutlined,
+  StopOutlined,
+} from "@ant-design/icons";
 import tags from "../lib/tag";
+import Link from "next/link";
 
 const availabilityInfo = {
   high: {
@@ -126,13 +132,19 @@ const EventCard: React.FC<EventCardProp> = ({ event, handleReserve }) => {
           <strong className="cardinfo">Time: </strong>
           {formatted_date}, {formatted_time} to {formatted_endtime}
         </p>
+        <Link
+          href={`/events/${event.id}`}
+          className="text-teal-400 hover:text-teal-300 mt-2 inline-block"
+        >
+          View full event details →
+        </Link>
       </Typography.Paragraph>
     );
   };
 
   const handleClick = () => {
     handleReserve(event);
-  }
+  };
 
   return (
     <Col xs={24} sm={12} md={8}>
@@ -145,7 +157,7 @@ const EventCard: React.FC<EventCardProp> = ({ event, handleReserve }) => {
         <TagList />
         <EventStatus />
         <EventInfo />
-        <Button 
+        <Button
           block
           className="bg-[#0BA698] text-white font-semibold hover:bg-[#08957d] mt-4"
           onClick={handleClick}

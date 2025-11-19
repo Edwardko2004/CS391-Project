@@ -6,19 +6,21 @@ import { Input, Select, DatePicker, Spin } from "antd";
 import EventsHandler from "./EventsHandler";
 import { Event } from "../types/types";
 import Tags from "./Tags";
-import dayjs, { Dayjs } from 'dayjs';
+import dayjs, { Dayjs } from "dayjs";
 
 const { Search } = Input;
 
 const sortFunctions: Record<string, (a: Event, b: Event) => number> = {
   soonest: (a, b) => new Date(a.time).getTime() - new Date(b.time).getTime(),
   latest: (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime(),
-  fullest: (a, b) => (b.reserved_seats / b.capacity) - (a.reserved_seats / a.capacity),
-  emptiest: (a, b) => (a.reserved_seats / a.capacity) - (b.reserved_seats / b.capacity),
+  fullest: (a, b) =>
+    b.reserved_seats / b.capacity - a.reserved_seats / a.capacity,
+  emptiest: (a, b) =>
+    a.reserved_seats / a.capacity - b.reserved_seats / b.capacity,
 };
 
 export default function Events() {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [events, setEvents] = useState<Event[]>([]);
   const [doFetch, setDoFetch] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -33,16 +35,20 @@ export default function Events() {
     setDoFetch(false);
 
     async function fetchData() {
-      let query = supabase.from('events').select('*')
-        .or(`title.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%,organizer.ilike.%${searchQuery}%`);
+      let query = supabase
+        .from("events")
+        .select("*")
+        .or(
+          `title.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%,organizer.ilike.%${searchQuery}%`
+        );
 
-      if (tags.length > 0) query = query.contains('tags', tags);
-      if (minDate) query = query.gte('time', minDate);
-      if (maxDate) query = query.lte('time', maxDate);
+      if (tags.length > 0) query = query.contains("tags", tags);
+      if (minDate) query = query.gte("time", minDate);
+      if (maxDate) query = query.lte("time", maxDate);
 
       const { data, error } = await query;
       if (error) {
-        console.error('ERROR:', error);
+        console.error("ERROR:", error);
       } else {
         setEvents(data.sort(sortFunctions[sortBy]) || []);
       }
@@ -68,12 +74,16 @@ export default function Events() {
   };
 
   const handleMinDate = (_: Dayjs, dateString: string | string[]) => {
-    setMinDate(Array.isArray(dateString) ? dateString.join(' to ') : dateString);
+    setMinDate(
+      Array.isArray(dateString) ? dateString.join(" to ") : dateString
+    );
     setDoFetch(true);
   };
 
   const handleMaxDate = (_: Dayjs, dateString: string | string[]) => {
-    setMaxDate(Array.isArray(dateString) ? dateString.join(' to ') : dateString);
+    setMaxDate(
+      Array.isArray(dateString) ? dateString.join(" to ") : dateString
+    );
     setDoFetch(true);
   };
 
@@ -92,15 +102,25 @@ export default function Events() {
             value={sortBy}
             onChange={handleSortSelect}
             options={[
-              { value: 'soonest', label: 'Sort by soonest' },
-              { value: 'latest', label: 'Sort by latest' },
-              { value: 'emptiest', label: 'Sort by emptiest' },
-              { value: 'fullest', label: 'Sort by fullest' },
+              { value: "soonest", label: "Sort by soonest" },
+              { value: "latest", label: "Sort by latest" },
+              { value: "emptiest", label: "Sort by emptiest" },
+              { value: "fullest", label: "Sort by fullest" },
             ]}
             className="w-full"
           />
-          <DatePicker showTime onChange={handleMinDate} placeholder="Start time" className="w-full" />
-          <DatePicker showTime onChange={handleMaxDate} placeholder="End time" className="w-full" />
+          <DatePicker
+            showTime
+            onChange={handleMinDate}
+            placeholder="Start time"
+            className="w-full"
+          />
+          <DatePicker
+            showTime
+            onChange={handleMaxDate}
+            placeholder="End time"
+            className="w-full"
+          />
           <Tags tags={tags} onChange={handleTags} />
         </div>
       </div>
