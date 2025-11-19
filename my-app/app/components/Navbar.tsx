@@ -8,12 +8,16 @@ import { useRouter, usePathname } from 'next/navigation';
 import { MenuInfo } from 'rc-menu/lib/interface';
 const { Header } = Layout;
 
-// the list of nav items
-const navItems: { key: string; label: string; href: string }[] = [
-  {key: "0", label: "Home", href: "/"},
-  {key: "1", label: "Create", href: "/create-event"},
-  {key: "2", label: "Sign up", href: "/signup"},
-  {key: "3", label: "Log in", href: "/login"},
+// nav items split into two groups
+const leftNavItems: { key: string; label: string; href: string }[] = [
+  { key: "0", label: "Home", href: "/" },
+  { key: "1", label: "About", href: "/about" },
+  { key: "2", label: "Create", href: "/create-event" },
+]
+
+const rightNavItems: { key: string; label: string; href: string }[] = [
+  { key: "3", label: "Sign up", href: "/signup" },
+  { key: "4", label: "Log in", href: "/login" },
 ]
 
 export default function Navbar() {
@@ -22,9 +26,12 @@ export default function Navbar() {
 
   const router = useRouter();
   const pathname = usePathname();
-  const selectedKey = navItems.findIndex((item) => item.href === pathname).toString();
 
-  // Fetch profile once user is logged in
+  // find selected key
+  const selectedKey = [...leftNavItems, ...rightNavItems]
+    .findIndex((item) => item.href === pathname)
+    .toString();
+
   useEffect(() => {
     const fetchProfile = async () => {
       if (user) {
@@ -44,24 +51,35 @@ export default function Navbar() {
     fetchProfile()
   }, [user])
 
-  // handle clicking new nav link
   const handleClick = (e: MenuInfo) => {
+    const allItems = [...leftNavItems, ...rightNavItems]
     const key = parseInt(e.key);
-    if (key < 0 || key >= navItems.length) return;
-    router.push(navItems[key].href);
+    if (key < 0 || key >= allItems.length) return;
+    router.push(allItems[key].href);
   }
 
   return (
     <div className="border-b border-gray-800">
-      <Header>
+      <Header style={{ display: 'flex', justifyContent: 'space-between' }}>
+        {/* Left side menu */}
         <Menu
           onClick={handleClick}
           theme="dark"
           mode="horizontal"
           selectedKeys={[selectedKey]}
           defaultSelectedKeys={['0']}
-          items={navItems}
-          style={{flex:1, minWidth:0}}
+          items={leftNavItems}
+          style={{ flex: 1, minWidth: 0 }}
+        />
+
+        {/* Right side menu */}
+        <Menu
+          onClick={handleClick}
+          theme="dark"
+          mode="horizontal"
+          selectedKeys={[selectedKey]}
+          items={rightNavItems}
+          style={{ minWidth: 0 }}
         />
       </Header>
     </div>
