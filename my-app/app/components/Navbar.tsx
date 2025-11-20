@@ -8,18 +8,6 @@ import { useRouter, usePathname } from 'next/navigation';
 import { MenuInfo } from 'rc-menu/lib/interface';
 const { Header } = Layout;
 
-// nav items split into two groups
-const leftNavItems: { key: string; label: string; href: string }[] = [
-  { key: "0", label: "Home", href: "/" },
-  { key: "1", label: "About", href: "/about" },
-  { key: "2", label: "Create", href: "/create-event" },
-]
-
-const rightNavItems: { key: string; label: string; href: string }[] = [
-  { key: "3", label: "Sign up", href: "/signup" },
-  { key: "4", label: "Log in", href: "/login" },
-]
-
 export default function Navbar() {
   const { user, signOut, loading } = useSupabaseAuth()
   const [firstName, setFirstName] = useState<string | null>(null)
@@ -27,10 +15,26 @@ export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
 
-  // find selected key
-  const selectedKey = [...leftNavItems, ...rightNavItems]
-    .findIndex((item) => item.href === pathname)
-    .toString();
+  // nav items for left side (same for both logged in/out)
+  const leftNavItems: { key: string; label: string; href: string }[] = [
+    { key: "0", label: "Home", href: "/" },
+    { key: "1", label: "About", href: "/about" },
+    { key: "2", label: "Create", href: "/create-event" },
+  ]
+
+  // nav items for right side - changes based on auth status
+  const getRightNavItems = () => {
+    if (user) {
+      return [
+        { key: "3", label: "Log Out", href: "/logout" },
+      ]
+    } else {
+      return [
+        { key: "3", label: "Sign up", href: "/signup" },
+        { key: "4", label: "Log in", href: "/login" },
+      ]
+    }
+  }
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -51,16 +55,43 @@ export default function Navbar() {
     fetchProfile()
   }, [user])
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+  }
+
   const handleClick = (e: MenuInfo) => {
-    const allItems = [...leftNavItems, ...rightNavItems]
+    const allItems = [...leftNavItems, ...getRightNavItems()]
     const key = parseInt(e.key);
+    
+    // Handle logout separately
+    if (user && key === 3) {
+      handleLogout();
+      return;
+    }
+    
     if (key < 0 || key >= allItems.length) return;
     router.push(allItems[key].href);
   }
 
+  // Get current nav items for selected key calculation
+  const currentRightItems = getRightNavItems();
+  const allItems = [...leftNavItems, ...currentRightItems];
+  
+  // find selected key
+  const selectedKey = allItems
+    .findIndex((item) => item.href === pathname)
+    .toString();
+
   return (
-    <div className="border-b border-gray-800">
-      <Header style={{ display: 'flex', justifyContent: 'space-between' }}>
+    <div className="border-b border-gray-800 bg-[#001529]">
+      <Header style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between',
+        padding: '0',
+        background: '#001529',
+        lineHeight: '64px'
+      }}>
         {/* Left side menu */}
         <Menu
           onClick={handleClick}
@@ -69,7 +100,12 @@ export default function Navbar() {
           selectedKeys={[selectedKey]}
           defaultSelectedKeys={['0']}
           items={leftNavItems}
-          style={{ flex: 1, minWidth: 0 }}
+          style={{ 
+            flex: 1, 
+            minWidth: 0,
+            background: 'transparent',
+            border: 'none'
+          }}
         />
 
         {/* Right side menu */}
@@ -78,8 +114,12 @@ export default function Navbar() {
           theme="dark"
           mode="horizontal"
           selectedKeys={[selectedKey]}
-          items={rightNavItems}
-          style={{ minWidth: 0 }}
+          items={currentRightItems}
+          style={{ 
+            minWidth: 0,
+            background: 'transparent',
+            border: 'none'
+          }}
         />
       </Header>
     </div>

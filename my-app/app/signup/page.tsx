@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { supabase } from "../lib/supabaseClient";
+import Link from "next/link";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -14,13 +15,12 @@ export default function SignupPage() {
     e.preventDefault();
     setLoading(true);
 
-    // 1️⃣ Create auth account
     const { data: signupData, error: signupError } = await supabase.auth.signUp(
       {
         email,
         password,
         options: {
-          data: { first_name: firstName, last_name: lastName }, // store in user metadata
+          data: { first_name: firstName, last_name: lastName },
         },
       }
     );
@@ -109,7 +109,7 @@ export default function SignupPage() {
             </div>
           </div>
 
-          <div>
+          <div className="space-y-4">
             <button
               type="submit"
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#0BA698] hover:bg-[#08957d] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0BA698]"
@@ -117,6 +117,15 @@ export default function SignupPage() {
             >
               {loading ? "Signing up..." : "Sign Up"}
             </button>
+
+            <div className="flex justify-center text-sm">
+              <Link
+                href="/login"
+                className="text-[#0BA698] hover:text-[#08957d]"
+              >
+                Already have an account? Log in
+              </Link>
+            </div>
           </div>
         </form>
       </div>

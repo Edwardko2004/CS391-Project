@@ -1,4 +1,3 @@
-// app/login/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -71,7 +70,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-4">
             <button
               type="submit"
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-[#0BA698] hover:bg-[#08957d] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0BA698]"
@@ -80,14 +79,24 @@ export default function LoginPage() {
               {loading ? "Logging in..." : "Log In"}
             </button>
 
-            <p className="text-center text-sm text-gray-400">
-              <Link
-                href="/reset-password"
-                className="text-[#0BA698] hover:text-[#08957d]"
-              >
-                Forgot Password?
-              </Link>
-            </p>
+            <div className="text-center space-y-2 text-sm">
+              <p>
+                <Link
+                  href="/signup"
+                  className="text-[#0BA698] hover:text-[#08957d]"
+                >
+                  Don't have an account? Sign up
+                </Link>
+              </p>
+              <p>
+                <Link
+                  href="/reset-password"
+                  className="text-[#0BA698] hover:text-[#08957d]"
+                >
+                  Forgot Password?
+                </Link>
+              </p>
+            </div>
           </div>
         </form>
       </div>
