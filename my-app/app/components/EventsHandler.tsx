@@ -39,8 +39,8 @@ const EventsHandler: React.FC<EventsHandlerProp> = ({ events, loading }) => {
         if (profile != null) {
             const {error} = await supabase.from("reservations").insert([
                 {
-                    event: e.id,
-                    profile: profile.id,
+                    event_id: e.id,
+                    profile_id: profile.id,
                 },
             ]);
 

@@ -42,55 +42,55 @@ export default function AboutPage() {
             <div className="flex flex-col items-center">
               <img
                 src="/team1.jpg"
-                alt="Alice Johnson"
+                alt="Imran Hussien"
                 className="w-32 h-32 rounded-full object-cover shadow-lg border-2 border-cyan-500"
               />
-              <h3 className="mt-4 text-lg font-semibold">Alice Johnson</h3>
-              <p className="text-gray-400 text-sm">Frontend Developer</p>
+              <h3 className="mt-4 text-lg font-semibold">Imran Hussien</h3>
+              <p className="text-gray-400 text-sm">Front-end Developer</p>
             </div>
 
             {/* Team Member 2 */}
             <div className="flex flex-col items-center">
               <img
                 src="/team2.jpg"
-                alt="Brian Lee"
+                alt="Edward Ko"
                 className="w-32 h-32 rounded-full object-cover shadow-lg border-2 border-cyan-500"
               />
-              <h3 className="mt-4 text-lg font-semibold">Brian Lee</h3>
-              <p className="text-gray-400 text-sm">Backend Developer</p>
+              <h3 className="mt-4 text-lg font-semibold">Edward Ko</h3>
+              <p className="text-gray-400 text-sm">Front-end Developer</p>
             </div>
 
             {/* Team Member 3 */}
             <div className="flex flex-col items-center">
               <img
                 src="/team3.jpg"
-                alt="Carla Smith"
+                alt="Rohaan Navin Chablani Mirpuri"
                 className="w-32 h-32 rounded-full object-cover shadow-lg border-2 border-cyan-500"
               />
-              <h3 className="mt-4 text-lg font-semibold">Carla Smith</h3>
-              <p className="text-gray-400 text-sm">UI/UX Designer</p>
+              <h3 className="mt-4 text-lg font-semibold">Rohaan Navin Chablani Mirpuri</h3>
+              <p className="text-gray-400 text-sm">Back-end Engineer</p>
             </div>
 
             {/* Team Member 4 */}
             <div className="flex flex-col items-center">
               <img
                 src="/team4.jpg"
-                alt="David Kim"
+                alt="Aidan Xu"
                 className="w-32 h-32 rounded-full object-cover shadow-lg border-2 border-cyan-500"
               />
-              <h3 className="mt-4 text-lg font-semibold">David Kim</h3>
-              <p className="text-gray-400 text-sm">Project Manager</p>
+              <h3 className="mt-4 text-lg font-semibold">Aidan Xu</h3>
+              <p className="text-gray-400 text-sm">Back-end Engineer</p>
             </div>
 
             {/* Team Member 5 */}
             <div className="flex flex-col items-center">
               <img
                 src="/team5.jpg"
-                alt="Emma Patel"
+                alt="Anson Zhu"
                 className="w-32 h-32 rounded-full object-cover shadow-lg border-2 border-cyan-500"
               />
-              <h3 className="mt-4 text-lg font-semibold">Emma Patel</h3>
-              <p className="text-gray-400 text-sm">Content Lead</p>
+              <h3 className="mt-4 text-lg font-semibold">Anson Zhu</h3>
+              <p className="text-gray-400 text-sm">Full-stack Developer</p>
             </div>
           </div>
         </section>

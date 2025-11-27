@@ -14,9 +14,9 @@ const sortFunctions: Record<string, (a: Event, b: Event) => number> = {
   soonest: (a, b) => new Date(a.time).getTime() - new Date(b.time).getTime(),
   latest: (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime(),
   fullest: (a, b) =>
-    b.reserved_seats / b.capacity - a.reserved_seats / a.capacity,
+    b.reservations / b.capacity - a.reservations / a.capacity,
   emptiest: (a, b) =>
-    a.reserved_seats / a.capacity - b.reserved_seats / b.capacity,
+    a.reservations / a.capacity - b.reservations / b.capacity,
 };
 
 export default function Events() {
@@ -37,7 +37,7 @@ export default function Events() {
     async function fetchData() {
       let query = supabase
         .from("events")
-        .select("*")
+        .select(`*, reservations(count)`)
         .or(
           `title.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%,organizer.ilike.%${searchQuery}%`
         );
@@ -47,11 +47,31 @@ export default function Events() {
       if (maxDate) query = query.lte("time", maxDate);
 
       const { data, error } = await query;
+
       if (error) {
         console.error("ERROR:", error);
       } else {
-        setEvents(data.sort(sortFunctions[sortBy]) || []);
+        console.log(JSON.stringify(data, null, 2));
+        const events: Event[] = data.map(event => ({
+          id: event.id,
+          title: event.title,
+          description: event.description,
+          tags: event.tags,
+          location: event.location,
+          organizer: event.organizer,
+          status: event.status,
+          reservations: event.reservations?.[0]?.count ?? 0,
+          capacity: event.capacity,
+          time: event.time,
+          time_length: event.time_length,
+          created_at: event.created_at
+        }));
+
+        setEvents(events.sort(sortFunctions[sortBy]) || []);
       }
+
+      console.log(data, error);
+
       setIsLoading(false);
     }
 

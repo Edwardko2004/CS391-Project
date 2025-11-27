@@ -50,9 +50,9 @@ interface EventCardProp {
 }
 
 const EventCard: React.FC<EventCardProp> = ({ event, handleReserve }) => {
-  const reservedPercent = (event.reserved_seats / event.capacity) * 100;
+  const reservedPercent = (event.reservations / event.capacity) * 100;
   const availability = availabilityInfo[getAvailability(reservedPercent)];
-  const seatsLeft = event.capacity - event.reserved_seats;
+  const seatsLeft = event.capacity - event.reservations;
   const date = new Date(event.time);
 
   const TagList = () => (
@@ -75,7 +75,7 @@ const EventCard: React.FC<EventCardProp> = ({ event, handleReserve }) => {
         </Col>
         <Col>
           <Typography.Text style={{ color: "#97a5adff" }}>
-            {event.reserved_seats} / {event.capacity} reserved
+            {event.reservations} / {event.capacity} reserved
           </Typography.Text>
         </Col>
       </Row>

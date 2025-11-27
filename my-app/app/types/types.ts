@@ -7,7 +7,7 @@ export interface Event {
     location: string;
     organizer: string;
     status: string;
-    reserved_seats: number;
+    reservations: number;
     capacity: number;
     time: string;
     time_length: number;
