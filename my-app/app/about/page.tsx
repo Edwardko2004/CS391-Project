@@ -79,7 +79,7 @@ export default function AboutPage() {
                 className="w-32 h-32 rounded-full object-cover shadow-lg border-2 border-cyan-500"
               />
               <h3 className="mt-4 text-lg font-semibold">Aidan Xu</h3>
-              <p className="text-gray-400 text-sm">Back-end Engineer</p>
+              <p className="text-gray-400 text-sm">Full-stack Developer</p>
             </div>
 
             {/* Team Member 5 */}

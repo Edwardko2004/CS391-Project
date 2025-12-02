@@ -9,36 +9,8 @@ import {
 } from "@ant-design/icons";
 import tags from "../lib/tag";
 import Link from "next/link";
-
-const availabilityInfo = {
-  high: {
-    color: "#10b981",
-    label: "Plenty Available",
-    icon: CheckCircleOutlined,
-  },
-  medium: {
-    color: "#f59e0b",
-    label: "Limited Seats",
-    icon: ClockCircleOutlined,
-  },
-  low: {
-    color: "#ef4444",
-    label: "Almost Gone!",
-    icon: FireOutlined,
-  },
-  out: {
-    color: "#6b7280",
-    label: "Fully Reserved",
-    icon: StopOutlined,
-  },
-};
-
-const getAvailability = (percent: number) => {
-  if (percent < 60) return "high";
-  if (percent < 80) return "medium";
-  if (percent < 100) return "low";
-  return "out";
-};
+import { useRouter } from 'next/navigation';
+import { availabilityInfo, getAvailability } from "../lib/cardUtil";
 
 const getFoodColor = (tag: string) => {
   return tags[tag as keyof typeof tags] || tags.other;
@@ -54,6 +26,7 @@ const EventCard: React.FC<EventCardProp> = ({ event, handleReserve }) => {
   const availability = availabilityInfo[getAvailability(reservedPercent)];
   const seatsLeft = event.capacity - event.reservations;
   const date = new Date(event.time);
+  const router = useRouter();
 
   const TagList = () => (
     <div style={{ marginBottom: 8 }}>
@@ -132,18 +105,16 @@ const EventCard: React.FC<EventCardProp> = ({ event, handleReserve }) => {
           <strong className="cardinfo">Time: </strong>
           {formatted_date}, {formatted_time} to {formatted_endtime}
         </p>
-        <Link
-          href={`/events/${event.id}`}
-          className="text-teal-400 hover:text-teal-300 mt-2 inline-block"
-        >
-          View full event details →
-        </Link>
       </Typography.Paragraph>
     );
   };
 
-  const handleClick = () => {
+  const handleButtonClick = () => {
     handleReserve(event);
+  };
+
+  const handleCardClick = () => {
+    router.push(`/events/${event.id}`)
   };
 
   return (
@@ -152,6 +123,7 @@ const EventCard: React.FC<EventCardProp> = ({ event, handleReserve }) => {
         hoverable
         className="bg-[#111827] border border-[#2A2A2A] text-white rounded-lg shadow-md transition-transform hover:scale-[1.02]"
         title={<span className="text-white font-semibold">{event.title}</span>}
+        onClick={handleCardClick}
         extra={<StatusIcon />}
       >
         <TagList />
@@ -160,7 +132,7 @@ const EventCard: React.FC<EventCardProp> = ({ event, handleReserve }) => {
         <Button
           block
           className="bg-[#0BA698] text-white font-semibold hover:bg-[#08957d] mt-4"
-          onClick={handleClick}
+          onClick={handleButtonClick}
         >
           Reserve a seat
         </Button>

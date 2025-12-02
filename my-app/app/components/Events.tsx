@@ -51,7 +51,6 @@ export default function Events() {
       if (error) {
         console.error("ERROR:", error);
       } else {
-        console.log(JSON.stringify(data, null, 2));
         const events: Event[] = data.map(event => ({
           id: event.id,
           title: event.title,

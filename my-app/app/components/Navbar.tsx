@@ -18,20 +18,21 @@ export default function Navbar() {
   // nav items for left side (same for both logged in/out)
   const leftNavItems: { key: string; label: string; href: string }[] = [
     { key: "0", label: "Home", href: "/" },
-    { key: "1", label: "About", href: "/about" },
+    { key: "1", label: "Events", href: "/events"},
     { key: "2", label: "Create", href: "/create-event" },
+    { key: "3", label: "About", href: "/about" },
   ]
 
   // nav items for right side - changes based on auth status
   const getRightNavItems = () => {
     if (user) {
       return [
-        { key: "3", label: "Log Out", href: "/logout" },
+        { key: "4", label: "Log Out", href: "/logout" },
       ]
     } else {
       return [
-        { key: "3", label: "Sign up", href: "/signup" },
-        { key: "4", label: "Log in", href: "/login" },
+        { key: "4", label: "Sign up", href: "/signup" },
+        { key: "5", label: "Log in", href: "/login" },
       ]
     }
   }
@@ -64,8 +65,8 @@ export default function Navbar() {
     const allItems = [...leftNavItems, ...getRightNavItems()]
     const key = parseInt(e.key);
     
-    // Handle logout separately
-    if (user && key === 3) {
+    // Handle logout separately <- this is not a great solution imo, change maybe?
+    if (user && key === 4) {
       handleLogout();
       return;
     }

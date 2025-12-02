@@ -8,34 +8,7 @@ import Link from "next/link";
 import { supabase } from "../../lib/supabaseClient";
 import { Event } from "../../types/types";
 import tags from "../../lib/tag";
-
-const availabilityInfo = {
-  high: {
-    color: "#10b981",
-    label: "Plenty Available",
-  },
-  medium: {
-    color: "#f59e0b",
-    label: "Limited Seats",
-  },
-  low: {
-    color: "#ef4444",
-    label: "Almost Gone!",
-  },
-  out: {
-    color: "#6b7280",
-    label: "Fully Reserved",
-  },
-} as const;
-
-type AvailabilityKey = keyof typeof availabilityInfo;
-
-const getAvailabilityKey = (percent: number): AvailabilityKey => {
-  if (percent < 60) return "high";
-  if (percent < 80) return "medium";
-  if (percent < 100) return "low";
-  return "out";
-};
+import { availabilityInfo, getAvailability } from "../../lib/cardUtil";
 
 export default function EventDetailPage() {
   const params = useParams();
@@ -52,18 +25,10 @@ export default function EventDetailPage() {
       setLoading(true);
       setLoadError(null);
 
-      // If your id column is numeric, uncomment the Number() version:
-      // const numericId = Number(id);
-      // if (Number.isNaN(numericId)) {
-      //   setLoadError("Invalid event id");
-      //   setLoading(false);
-      //   return;
-      // }
-
       const { data, error } = await supabase
         .from("events")
-        .select("*")
-        .eq("id", id) // or .eq("id", numericId) if your DB id is integer
+        .select(`*, reservations(count)`)
+        .eq("id", id)
         .single();
 
       if (error || !data) {
@@ -73,7 +38,22 @@ export default function EventDetailPage() {
         return;
       }
 
-      setEvent(data as Event);
+      const e = {
+        id: data.id,
+        title: data.title,
+        description: data.description,
+        tags: data.tags,
+        location: data.location,
+        organizer: data.organizer,
+        status: data.status,
+        reservations: data.reservations?.[0]?.count ?? 0,
+        capacity: data.capacity,
+        time: data.time,
+        time_length: data.time_length,
+        created_at: data.created_at
+      }
+
+      setEvent(e);
       setLoading(false);
     };
 
@@ -98,7 +78,7 @@ export default function EventDetailPage() {
     return (
       <div className="min-h-screen bg-black text-white px-4 py-8 flex justify-center">
         <div className="w-full max-w-3xl space-y-4">
-          <Link href="/" className="text-teal-400 hover:text-teal-300">
+          <Link href="/events" className="text-teal-400 hover:text-teal-300">
             ← Back to all events
           </Link>
           <Card className="bg-[#111827] border border-[#2A2A2A] text-white rounded-lg shadow-md">
@@ -115,10 +95,9 @@ export default function EventDetailPage() {
     );
   }
 
-  const reservedPercent = (event.reserved_seats / event.capacity) * 100;
-  const availabilityKey = getAvailabilityKey(reservedPercent);
-  const availability = availabilityInfo[availabilityKey];
-  const seatsLeft = event.capacity - event.reserved_seats;
+  const reservedPercent = (event.reservations / event.capacity) * 100;
+  const availability = availabilityInfo[getAvailability(reservedPercent)];
+  const seatsLeft = event.capacity - event.reservations;
 
   const date = new Date(event.time);
 
@@ -178,7 +157,7 @@ export default function EventDetailPage() {
             </Col>
             <Col>
               <Typography.Text style={{ color: "#97a5adff" }}>
-                {event.reserved_seats} / {event.capacity} reserved ({seatsLeft}{" "}
+                {event.reservations} / {event.capacity} reserved ({seatsLeft}{" "}
                 seats left)
               </Typography.Text>
             </Col>
