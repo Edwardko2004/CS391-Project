@@ -1,9 +1,11 @@
+// components/EventsHandler.tsx
+// handles the list of event cards, as well as the reservation of said events
+
 import React from "react";
-import { Row, Space, Spin, Typography } from "antd";
+import { Row, Spin } from "antd";
 import { Event, Profile } from "../types/types";
 import EventCard from "./EventCard";
-import { useEffect, useState } from "react";
-
+import { useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useSupabaseAuth } from "../lib/SupabaseProvider";
 
@@ -15,12 +17,14 @@ interface EventsHandlerProp {
 
 // returns a grid/list of eventcards and manages them
 const EventsHandler: React.FC<EventsHandlerProp> = ({ events, loading }) => {
-    const {user} = useSupabaseAuth();
-    const [profile, setProfile] = useState<Profile | null>(null);
+    const {user} = useSupabaseAuth();                               // fetch user from supabase auth
+    const [profile, setProfile] = useState<Profile | null>(null);   // stores the user profile
 
     // handle creating a reservation when clicking on a card
     const handleReserve = async (e: Event) => {
+        // API call to find the profile of the user
         const fetchProfile = async () => {
+            // only call if there is currently a user logged in
             if (user) {
                 const {data, error} = await supabase.from('profiles').select('*').eq('id', user.id).single();
                 if (error) {
@@ -36,6 +40,7 @@ const EventsHandler: React.FC<EventsHandlerProp> = ({ events, loading }) => {
 
         fetchProfile();
 
+        // if there is indeed a profile attributed, try inserting the reservation
         if (profile != null) {
             const {error} = await supabase.from("reservations").insert([
                 {
@@ -71,7 +76,7 @@ const EventsHandler: React.FC<EventsHandlerProp> = ({ events, loading }) => {
         )
     }
 
-    // actual content
+    // return the full component
     return (
         <Row gutter={[16, 16]}>
             {events.map((event) =>

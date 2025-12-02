@@ -8,6 +8,7 @@ import {
   StopOutlined,
 } from "@ant-design/icons";
 
+// a table containing styling and info for availability levels
 export const availabilityInfo = {
   high: {
     color: "#10b981",
@@ -31,6 +32,7 @@ export const availabilityInfo = {
   },
 };
 
+// provides the availability level given a percent level (between 0 and 100)
 export const getAvailability = (percent: number) => {
   if (percent < 60) return "high";
   if (percent < 80) return "medium";

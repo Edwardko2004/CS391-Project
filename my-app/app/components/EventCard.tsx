@@ -1,3 +1,6 @@
+// components/EventCard.tsx
+// component that renders a single event card for the events listing
+
 import React from "react";
 import { Card, Col, Typography, Button, Progress, Row, Tag } from "antd";
 import { Event } from "../types/types";
@@ -12,22 +15,25 @@ import Link from "next/link";
 import { useRouter } from 'next/navigation';
 import { availabilityInfo, getAvailability } from "../lib/cardUtil";
 
+// returns the color of an existing tag
 const getFoodColor = (tag: string) => {
   return tags[tag as keyof typeof tags] || tags.other;
 };
 
+// the properties to pass into an event card
 interface EventCardProp {
   event: Event;
   handleReserve: (e: Event) => void;
 }
 
+// EventCard component
 const EventCard: React.FC<EventCardProp> = ({ event, handleReserve }) => {
-  const reservedPercent = (event.reservations / event.capacity) * 100;
-  const availability = availabilityInfo[getAvailability(reservedPercent)];
-  const seatsLeft = event.capacity - event.reservations;
-  const date = new Date(event.time);
-  const router = useRouter();
+  const reservedPercent = (event.reservations / event.capacity) * 100;      // percent of an event's capacity
+  const availability = availabilityInfo[getAvailability(reservedPercent)];  // info and styling of availiability
+  const date = new Date(event.time);    // date object storing the event's date
+  const router = useRouter();           // router to redirect the page to the detailed page
 
+  // shows the list of tags associated with this event
   const TagList = () => (
     <div style={{ marginBottom: 8 }}>
       {event.tags.map((tag, index) => (
@@ -38,6 +44,7 @@ const EventCard: React.FC<EventCardProp> = ({ event, handleReserve }) => {
     </div>
   );
 
+  // provides info of the availability of the event
   const EventStatus = () => (
     <>
       <Row justify="space-between" style={{ width: "100%" }}>
@@ -61,13 +68,16 @@ const EventCard: React.FC<EventCardProp> = ({ event, handleReserve }) => {
     </>
   );
 
+  // icon with availability info of an event
   const StatusIcon = () => (
     <Tag icon={<availability.icon />} color={availability.color}>
-      {seatsLeft} seats left
+      {event.capacity - event.reservations} seats left
     </Tag>
   );
 
+  // provide info on the date, time, location, and organizer of the event
   const EventInfo = () => {
+    // reformat the time and date into something more readable
     const formatted_date = date.toLocaleDateString("en-US", {
       weekday: "long",
       month: "long",
@@ -80,6 +90,7 @@ const EventCard: React.FC<EventCardProp> = ({ event, handleReserve }) => {
       hour12: true,
     });
 
+    // find the end time by adding event length to starting time
     const end_date = new Date(event.time);
     end_date.setMinutes(end_date.getMinutes() + event.time_length);
 
@@ -109,14 +120,17 @@ const EventCard: React.FC<EventCardProp> = ({ event, handleReserve }) => {
     );
   };
 
+  // handle reservations when clicking on the card's reserve button
   const handleButtonClick = () => {
     handleReserve(event);
   };
 
+  // handle showing the detail view of the event when clicking on its card
   const handleCardClick = () => {
     router.push(`/events/${event.id}`)
   };
 
+  // return the full component
   return (
     <Col xs={24} sm={12} md={8}>
       <Card

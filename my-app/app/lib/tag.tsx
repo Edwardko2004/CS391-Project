@@ -1,4 +1,5 @@
-// app/lib/tag.ts
+// app/lib/tag.tsx
+// provides tag styling
 
 export type TagMap = {
   [key: string]: {

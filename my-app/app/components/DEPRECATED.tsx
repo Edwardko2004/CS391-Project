@@ -1,3 +1,8 @@
+// THIS CODE IS DEPRECATED
+// it was the old eventcard list component, does not work with API
+// houses the old animations that we might want to reimplement
+// once we get the animations down, we can delete this file!
+
 'use client'
 
 import { useState, useEffect } from 'react';

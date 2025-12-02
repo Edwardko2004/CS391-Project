@@ -1,3 +1,6 @@
+// components/Navbar.tsx
+// the header of the website, used to navigate and log in/out and sign up
+
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -8,11 +11,12 @@ import { useRouter, usePathname } from 'next/navigation';
 import { MenuInfo } from 'rc-menu/lib/interface';
 const { Header } = Layout;
 
+// Navbar component
 export default function Navbar() {
-  const { user, signOut, loading } = useSupabaseAuth()
-  const [firstName, setFirstName] = useState<string | null>(null)
+  const { user, signOut, loading } = useSupabaseAuth()            // find the current user with supabase auth
+  const [firstName, setFirstName] = useState<string | null>(null) // the first name of the user
 
-  const router = useRouter();
+  const router = useRouter();       // router used to redirect user to other pages
   const pathname = usePathname();
 
   // nav items for left side (same for both logged in/out)
@@ -37,8 +41,10 @@ export default function Navbar() {
     }
   }
 
+  // initial API call to find the profile (or specifically the first name) of the user
   useEffect(() => {
     const fetchProfile = async () => {
+      // make API call only when there is currently a user
       if (user) {
         const { data, error } = await supabase
           .from('profiles')
@@ -56,11 +62,13 @@ export default function Navbar() {
     fetchProfile()
   }, [user])
 
+  // handles the logout nav
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push('/login');
   }
 
+  // handles the link routing for the navbar
   const handleClick = (e: MenuInfo) => {
     const allItems = [...leftNavItems, ...getRightNavItems()]
     const key = parseInt(e.key);
@@ -71,6 +79,7 @@ export default function Navbar() {
       return;
     }
     
+    // make sure a given key is valid before we route
     if (key < 0 || key >= allItems.length) return;
     router.push(allItems[key].href);
   }
@@ -84,6 +93,7 @@ export default function Navbar() {
     .findIndex((item) => item.href === pathname)
     .toString();
 
+  // return the final component
   return (
     <div className="border-b border-gray-800 bg-[#001529]">
       <Header style={{ 
