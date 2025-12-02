@@ -3,7 +3,7 @@
 
 import React from "react";
 import { Row, Spin } from "antd";
-import { Event, Profile } from "../types/types";
+import { Event, Profile } from "../lib/types";
 import EventCard from "./EventCard";
 import { useState } from "react";
 import { supabase } from "../lib/supabaseClient";
@@ -78,15 +78,17 @@ const EventsHandler: React.FC<EventsHandlerProp> = ({ events, loading }) => {
 
     // return the full component
     return (
-        <Row gutter={[16, 16]}>
-            {events.map((event) =>
-                <EventCard 
-                    key={event.id} 
-                    event={event} 
-                    handleReserve={handleReserve}
-                />
-            )}
-        </Row>
+        <>
+            <Row gutter={[16, 16]}>
+                {events.map((event) =>
+                    <EventCard 
+                        key={event.id} 
+                        event={event} 
+                        handleReserve={handleReserve}
+                    />
+                )}
+            </Row>
+        </>
     );
 }
 

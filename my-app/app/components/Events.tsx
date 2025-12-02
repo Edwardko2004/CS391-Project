@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { Input, Select, DatePicker, Spin } from "antd";
 import EventsHandler from "./EventsHandler";
-import { Event } from "../types/types";
+import { Event } from "../lib/types";
 import Tags from "./Tags";
 import dayjs, { Dayjs } from "dayjs";
 
@@ -79,8 +79,6 @@ export default function Events() {
         // set the events and then set events to the list
         setEvents(events.sort(sortFunctions[sortBy]) || []);
       }
-
-      console.log(data, error);
 
       setIsLoading(false);  // we are done fetching data
     }

@@ -6,7 +6,7 @@ import { notFound } from "next/navigation";
 import { Card, Tag, Typography, Row, Col, Progress, Button, Spin } from "antd";
 import Link from "next/link";
 import { supabase } from "../../lib/supabaseClient";
-import { Event } from "../../types/types";
+import { Event } from "../../lib/types";
 import tags from "../../lib/tag";
 import { availabilityInfo, getAvailability } from "../../lib/cardUtil";
 

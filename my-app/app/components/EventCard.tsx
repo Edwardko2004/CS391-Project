@@ -3,7 +3,7 @@
 
 import React from "react";
 import { Card, Col, Typography, Button, Progress, Row, Tag } from "antd";
-import { Event } from "../types/types";
+import { Event } from "../lib/types";
 import {
   CheckCircleOutlined,
   ClockCircleOutlined,
