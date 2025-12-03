@@ -9,6 +9,7 @@ import { useSupabaseAuth } from '../lib/SupabaseProvider'
 import { Layout, Menu } from 'antd'
 import { useRouter, usePathname } from 'next/navigation';
 import { MenuInfo } from 'rc-menu/lib/interface';
+import Image from 'next/image'
 const { Header } = Layout;
 
 // Navbar component
@@ -20,8 +21,34 @@ export default function Navbar() {
   const pathname = usePathname();
 
   // nav items for left side (same for both logged in/out)
-  const leftNavItems: { key: string; label: string; href: string }[] = [
-    { key: "0", label: "Home", href: "/" },
+  const leftNavItems: { key: string; label: React.ReactNode; href: string }[] = [
+    { 
+      key: "0", 
+      label: (
+        <div 
+          className="flex items-center justify-center rounded-full transition-transform duration-200 hover:scale-110"
+          style={{ 
+            cursor: "pointer",
+            width: "72px",
+            height: "72px"
+          }}
+        >
+          <Image
+            src="/assets/sparklogo-adobe.png"
+            alt="Spark! Bytes Logo"
+            width={64}
+            height={64}
+            priority
+            style={{
+              height: "64px",
+              width: "auto",
+              objectFit: "contain"
+            }}
+          />
+        </div>
+      ), 
+      href: "/" 
+    },
     { key: "1", label: "Events", href: "/events"},
     { key: "2", label: "Create", href: "/create-event" },
     { key: "3", label: "About", href: "/about" },

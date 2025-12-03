@@ -8,7 +8,7 @@ import { supabase } from "../lib/supabaseClient";
 import { Input, Select, DatePicker, Switch, Pagination } from "antd";
 import EventsHandler from "./EventsHandler";
 import { Event } from "../lib/types";
-import Tags from "./Tags";
+import EventsTags from "./EventsTags";
 import dayjs, { Dayjs } from "dayjs";
 
 const { Search } = Input;
@@ -188,7 +188,7 @@ export default function Events() {
             placeholder="End time"
             className="w-full"
           />
-          <Tags tags={tags} onChange={handleTags} />
+          <EventsTags tags={tags} onChange={handleTags} />
           <Switch checkedChildren="Show Old" unCheckedChildren="Upcoming Only" onChange={handleSwitch}/>
         </div>
       </div>
