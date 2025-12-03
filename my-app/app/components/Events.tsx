@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
-import { Input, Select, DatePicker, Switch } from "antd";
+import { Input, Select, DatePicker, Switch, Pagination } from "antd";
 import EventsHandler from "./EventsHandler";
 import { Event } from "../lib/types";
 import Tags from "./Tags";
@@ -34,6 +34,9 @@ export default function Events() {
   const [minDate, setMinDate] = useState<string | null>(null);  // the minimum date an event starts
   const [maxDate, setMaxDate] = useState<string | null>(null);  // the maximum date an event starts
   const [showOld, setShowOld] = useState(false);                // show old events that have passed
+  const [page, setPage] = useState(1);                          // the current page we are one
+  const [total, setTotal] = useState(0);                        // the total number of events queried
+  const [pageSize, setPageSize] = useState(10);                 // the page size
 
   // useeffect to initialize the first API call
   useEffect(() => {
@@ -43,18 +46,23 @@ export default function Events() {
 
     // calls the supabase API for the list of events
     async function fetchData() {
+      // query to get the data
       let query = supabase
         .from("events")
         .select(`*, reservations(count)`)
         .or(
           `title.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%,organizer.ilike.%${searchQuery}%`
-        );
+        )
 
-      // apply the filters to the query
+      // apply the filters to the queries
       if (tags.length > 0) query = query.contains("tags", tags);
       if (minDate) query = query.gte("time", minDate);
       if (maxDate) query = query.lte("time", maxDate);
       if (!showOld) query = query.gte("time", new Date().toISOString());
+
+      // apply pagination
+      const start = (page - 1) * pageSize;
+      const end = start + pageSize - 1;
 
       // retrieve the data from the query
       const { data, error } = await query;
@@ -63,7 +71,7 @@ export default function Events() {
         console.error("ERROR:", error);
       } else {
         // map the data we got into a list of events
-        const events: Event[] = data.map(event => ({
+        let events: Event[] = data.map(event => ({
           id: event.id,
           title: event.title,
           description: event.description,
@@ -75,11 +83,21 @@ export default function Events() {
           capacity: event.capacity,
           time: event.time,
           time_length: event.time_length,
-          created_at: event.created_at
+          created_at: event.created_at,
+          image_url: event.image_url,
         }));
 
+        // get total length of the query
+        setTotal(events.length);
+
+        // sort and paginate
+        events = events.sort(sortFunctions[sortBy])
+        const start = (page - 1) * pageSize;
+        const end = start + pageSize;
+        events = events.slice(start, end);
+
         // set the events and then set events to the list
-        setEvents(events.sort(sortFunctions[sortBy]) || []);
+        setEvents(events || []);
       }
 
       setIsLoading(false);  // we are done fetching data
@@ -128,6 +146,13 @@ export default function Events() {
     setDoFetch(true);
   }
 
+  // begin a query after paginating
+  const handlePagination = (p: number, s:number) => {
+    setPage(p);
+    setPageSize(s);
+    setDoFetch(true);
+  }
+
   // return the final component
   return (
     <div className="px-6 py-8">
@@ -140,7 +165,6 @@ export default function Events() {
           className="w-full"
         />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Switch checkedChildren="Show Old" unCheckedChildren="New Only" onChange={handleSwitch}/>
           <Select
             value={sortBy}
             onChange={handleSortSelect}
@@ -165,9 +189,16 @@ export default function Events() {
             className="w-full"
           />
           <Tags tags={tags} onChange={handleTags} />
+          <Switch checkedChildren="Show Old" unCheckedChildren="Upcoming Only" onChange={handleSwitch}/>
         </div>
       </div>
       <EventsHandler events={events} loading={isLoading} />
+      <Pagination
+        current={page}
+        total={total}
+        showSizeChanger
+        onChange={handlePagination}
+      />
     </div>
   );
 }

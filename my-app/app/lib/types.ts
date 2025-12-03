@@ -15,6 +15,7 @@ export interface Event {
     time: string;
     time_length: number;
     created_at: string;
+    image_url: string;
 }
 
 // define the Profile type and its fields

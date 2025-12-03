@@ -21,13 +21,9 @@ interface EventCardProp {
 // EventCard component
 const EventCard: React.FC<EventCardProp> = ({ event }) => {
   const reservedPercent = (event.reservations / event.capacity) * 100;      // percent of an event's capacity
-  const availability = availabilityInfo[getAvailability(reservedPercent)];  // info and styling of availiability
+  const availability = availabilityInfo[getAvailability(reservedPercent, new Date().toISOString() > event.time)];  // info and styling of availiability
   const date = new Date(event.time);    // date object storing the event's date
   const router = useRouter();           // router to redirect the page to the detailed page
-  const isActive = (                    // boolean for if an event is still active
-    (event.reservations < event.capacity)
-    && (new Date().toISOString() < event.time)
-  );          
 
   // shows the list of tags associated with this event
   const TagList = () => (
@@ -130,6 +126,14 @@ const EventCard: React.FC<EventCardProp> = ({ event }) => {
         title={<span className="text-white font-semibold">{event.title}</span>}
         onClick={handleCardClick}
         extra={<StatusIcon />}
+        cover={event.image_url &&
+          <img src={event.image_url} alt="image" draggable={false}
+          style={{
+            height: 100,
+            objectFit: "cover"
+          }}
+          />
+        }
       >
         <TagList />
         <EventStatus />

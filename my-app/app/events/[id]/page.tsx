@@ -90,7 +90,8 @@ export default function EventDetailPage() {
         capacity: data.capacity,
         time: data.time,
         time_length: data.time_length,
-        created_at: data.created_at
+        created_at: data.created_at,
+        image_url: data.image_url,
       }
 
       setEvent(e);
@@ -137,8 +138,10 @@ export default function EventDetailPage() {
   }
 
   const reservedPercent = (event.reservations / event.capacity) * 100;
-  const availability = availabilityInfo[getAvailability(reservedPercent)];
+  const availability = availabilityInfo[getAvailability(reservedPercent, new Date().toISOString() > event.time)];
   const seatsLeft = event.capacity - event.reservations;
+  const inactive = new Date().toISOString() > event.time || seatsLeft == 0;
+  console.log(inactive);
 
   const date = new Date(event.time);
 
@@ -175,6 +178,9 @@ export default function EventDetailPage() {
           styles={{
             body: { color: "white" },
           }}
+          cover={event.image_url &&
+            <img src={event.image_url} alt="image" draggable={false}/>
+          }
         >
           <Typography.Title level={2} style={{ color: "white" }}>
             {event.title}
@@ -236,6 +242,7 @@ export default function EventDetailPage() {
             className="bg-[#0BA698] text-white font-semibold hover:bg-[#08957d] mt-6"
             block
             onClick={handleReserve}
+            disabled={inactive}
           >
             Reserve a seat
           </Button>
