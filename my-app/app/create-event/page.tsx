@@ -25,7 +25,6 @@ export default function CreateEventPage() {
     status: "open",
     description: "",
     organizer: "",
-    reserved_seats: "",
     tags: [] as string[],
     date: "",
     time: "",
@@ -77,9 +76,6 @@ export default function CreateEventPage() {
           created_at: new Date().toISOString(),
           description: form.description || null,
           organizer: form.organizer || null,
-          reserved_seats: form.reserved_seats
-            ? parseInt(form.reserved_seats)
-            : 0,
           tags: tagArray,
           time: eventDateTime ? eventDateTime.toISOString() : null,
           time_length: form.time_length ? parseInt(form.time_length) : null,
@@ -97,7 +93,6 @@ export default function CreateEventPage() {
         status: "open",
         description: "",
         organizer: "",
-        reserved_seats: "",
         tags: [] as string[],
         date: "",
         time: "",
@@ -271,18 +266,6 @@ export default function CreateEventPage() {
                   value={form.capacity}
                   onChange={handleChange}
                   placeholder="e.g. 50"
-                  className="w-full mt-2 p-3 bg-gray-900 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-cyan-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs text-gray-300 font-medium">Reserved Seats</label>
-                <input
-                  type="number"
-                  name="reserved_seats"
-                  value={form.reserved_seats}
-                  onChange={handleChange}
-                  placeholder="e.g. 5"
                   className="w-full mt-2 p-3 bg-gray-900 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-cyan-500 focus:outline-none"
                 />
               </div>
