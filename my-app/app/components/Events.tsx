@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
-import { Input, Select, DatePicker, Spin } from "antd";
+import { Input, Select, DatePicker, Switch } from "antd";
 import EventsHandler from "./EventsHandler";
 import { Event } from "../lib/types";
 import Tags from "./Tags";
@@ -33,6 +33,7 @@ export default function Events() {
   const [sortBy, setSortBy] = useState("soonest");              // the function we want to sort by
   const [minDate, setMinDate] = useState<string | null>(null);  // the minimum date an event starts
   const [maxDate, setMaxDate] = useState<string | null>(null);  // the maximum date an event starts
+  const [showOld, setShowOld] = useState(false);                // show old events that have passed
 
   // useeffect to initialize the first API call
   useEffect(() => {
@@ -53,6 +54,7 @@ export default function Events() {
       if (tags.length > 0) query = query.contains("tags", tags);
       if (minDate) query = query.gte("time", minDate);
       if (maxDate) query = query.lte("time", maxDate);
+      if (!showOld) query = query.gte("time", new Date().toISOString());
 
       // retrieve the data from the query
       const { data, error } = await query;
@@ -120,6 +122,12 @@ export default function Events() {
     setDoFetch(true);
   };
 
+  // begin a query to show old events that have passed
+  const handleSwitch = (b: boolean) => {
+    setShowOld(b);
+    setDoFetch(true);
+  }
+
   // return the final component
   return (
     <div className="px-6 py-8">
@@ -132,6 +140,7 @@ export default function Events() {
           className="w-full"
         />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Switch checkedChildren="Show Old" unCheckedChildren="New Only" onChange={handleSwitch}/>
           <Select
             value={sortBy}
             onChange={handleSortSelect}

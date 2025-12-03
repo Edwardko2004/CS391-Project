@@ -4,14 +4,7 @@
 import React from "react";
 import { Card, Col, Typography, Button, Progress, Row, Tag } from "antd";
 import { Event } from "../lib/types";
-import {
-  CheckCircleOutlined,
-  ClockCircleOutlined,
-  FireOutlined,
-  StopOutlined,
-} from "@ant-design/icons";
 import tags from "../lib/tag";
-import Link from "next/link";
 import { useRouter } from 'next/navigation';
 import { availabilityInfo, getAvailability } from "../lib/cardUtil";
 
@@ -23,15 +16,18 @@ const getFoodColor = (tag: string) => {
 // the properties to pass into an event card
 interface EventCardProp {
   event: Event;
-  handleReserve: (e: Event) => void;
 }
 
 // EventCard component
-const EventCard: React.FC<EventCardProp> = ({ event, handleReserve }) => {
+const EventCard: React.FC<EventCardProp> = ({ event }) => {
   const reservedPercent = (event.reservations / event.capacity) * 100;      // percent of an event's capacity
   const availability = availabilityInfo[getAvailability(reservedPercent)];  // info and styling of availiability
   const date = new Date(event.time);    // date object storing the event's date
   const router = useRouter();           // router to redirect the page to the detailed page
+  const isActive = (                    // boolean for if an event is still active
+    (event.reservations < event.capacity)
+    && (new Date().toISOString() < event.time)
+  );          
 
   // shows the list of tags associated with this event
   const TagList = () => (
@@ -120,11 +116,6 @@ const EventCard: React.FC<EventCardProp> = ({ event, handleReserve }) => {
     );
   };
 
-  // handle reservations when clicking on the card's reserve button
-  const handleButtonClick = () => {
-    handleReserve(event);
-  };
-
   // handle showing the detail view of the event when clicking on its card
   const handleCardClick = () => {
     router.push(`/events/${event.id}`)
@@ -146,9 +137,9 @@ const EventCard: React.FC<EventCardProp> = ({ event, handleReserve }) => {
         <Button
           block
           className="bg-[#0BA698] text-white font-semibold hover:bg-[#08957d] mt-4"
-          onClick={handleButtonClick}
+          onClick={handleCardClick}
         >
-          Reserve a seat
+          View Details
         </Button>
       </Card>
     </Col>

@@ -4,7 +4,9 @@
 import * as Type from "../lib/types";
 import { useState, useEffect } from "react";
 import { supabase } from "../lib/supabaseClient";
-import { Table } from "antd";
+import { Table, Tabs } from "antd";
+
+const {TabPane} = Tabs;
 
 // props for the reserved list
 interface ReservedEventsProp {
@@ -13,7 +15,7 @@ interface ReservedEventsProp {
 
 // UserReservedEvents component
 const UserReservedEvents: React.FC<ReservedEventsProp> = ({ profile }) => {
-    const [events, setEvents] = useState<Event[]>([]);
+    const [events, setEvents] = useState<Type.Event[]>([]);
     const [loading, setLoading] = useState(false);
     const [doQuery, setDoQuery] = useState(true);
 
@@ -42,7 +44,7 @@ const UserReservedEvents: React.FC<ReservedEventsProp> = ({ profile }) => {
                 console.error(error);
             } else {
                 // turn data into the list of events and set it
-                const list: Event[] = data.map(r => r.events)
+                const list: Type.Event[] = data.map(r => r.events)
                 setEvents(list);
             }
 
@@ -52,24 +54,53 @@ const UserReservedEvents: React.FC<ReservedEventsProp> = ({ profile }) => {
         fetchData()
     }, [doQuery])
 
+    const now = new Date();
+    const past = events.filter((e: Type.Event) => new Date(e.time) < now);
+    const upcoming = events.filter((e: Type.Event) => new Date(e.time) >= now);
+
     // return the final component
     return (
-        <Table
-            loading={loading}
-            dataSource={events}
-            columns = {[
-                {
-                    title: "Title",
-                    dataIndex: "title",
-                },
-                {
-                    title: "Time",
-                    dataIndex: "time",
-                }
-            ]}
-            rowKey={"id"}
-            pagination={false}
-        />
+        <Tabs
+            type="card"
+            defaultActiveKey="1"
+        >
+            <TabPane tab="Upcoming" key="1">
+                <Table
+                    loading={loading}
+                    dataSource={upcoming}
+                    columns = {[
+                        {
+                            title: "Title",
+                            dataIndex: "title",
+                        },
+                        {
+                            title: "Time",
+                            dataIndex: "time",
+                        }
+                    ]}
+                    rowKey={"id"}
+                    pagination={false}
+                />
+            </TabPane>
+            <TabPane tab="Past" key="2">
+                <Table
+                    loading={loading}
+                    dataSource={past}
+                    columns = {[
+                        {
+                            title: "Title",
+                            dataIndex: "title",
+                        },
+                        {
+                            title: "Time",
+                            dataIndex: "time",
+                        }
+                    ]}
+                    rowKey={"id"}
+                    pagination={false}
+                />
+            </TabPane>
+        </Tabs>
     )
 }
 

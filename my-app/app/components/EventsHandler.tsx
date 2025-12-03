@@ -17,53 +17,15 @@ interface EventsHandlerProp {
 
 // returns a grid/list of eventcards and manages them
 const EventsHandler: React.FC<EventsHandlerProp> = ({ events, loading }) => {
-    const {user} = useSupabaseAuth();                               // fetch user from supabase auth
-    const [profile, setProfile] = useState<Profile | null>(null);   // stores the user profile
-
-    // handle creating a reservation when clicking on a card
-    const handleReserve = async (e: Event) => {
-        // API call to find the profile of the user
-        const fetchProfile = async () => {
-            // only call if there is currently a user logged in
-            if (user) {
-                const {data, error} = await supabase.from('profiles').select('*').eq('id', user.id).single();
-                if (error) {
-                    console.error('Error fetching profile:', error);
-                    setProfile(null);
-                } else {
-                    setProfile(data);
-                }
-            } else {
-                setProfile(null);
-            }
-        }
-
-        fetchProfile();
-
-        // if there is indeed a profile attributed, try inserting the reservation
-        if (profile != null) {
-            const {error} = await supabase.from("reservations").insert([
-                {
-                    event_id: e.id,
-                    profile_id: profile.id,
-                },
-            ]);
-
-            if (error) {
-                console.error("Error creating reservation:", error);
-                alert("Issue creating reservation");
-            } else {
-                alert("Seat reserved successfully!");
-            }
-        }
-    }
-
     // return something else if we are loading (placeholder component)
     if (loading) {
         return (
-            <div className="flex justify-center items-center h-64">
-                <Spin size="large" />
-            </div>
+            <main className="flex items-center justify-center">
+                <div className="text-white text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto mb-4"></div>
+                    <p>Loading events...</p>
+                </div>
+            </main>
         )
     }
 
@@ -84,7 +46,6 @@ const EventsHandler: React.FC<EventsHandlerProp> = ({ events, loading }) => {
                     <EventCard 
                         key={event.id} 
                         event={event} 
-                        handleReserve={handleReserve}
                     />
                 )}
             </Row>

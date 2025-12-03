@@ -6,17 +6,57 @@ import { notFound } from "next/navigation";
 import { Card, Tag, Typography, Row, Col, Progress, Button, Spin } from "antd";
 import Link from "next/link";
 import { supabase } from "../../lib/supabaseClient";
-import { Event } from "../../lib/types";
+import { Event, Profile } from "../../lib/types";
 import tags from "../../lib/tag";
 import { availabilityInfo, getAvailability } from "../../lib/cardUtil";
+import { useSupabaseAuth } from "@/app/lib/SupabaseProvider";
 
 export default function EventDetailPage() {
   const params = useParams();
   const id = params?.id as string | undefined;
-
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);   // stores the user profile
+  const {user} = useSupabaseAuth();                               // fetch user from supabase auth
+
+  // handle creating a reservation when clicking on a card
+  const handleReserve = async () => {
+      // API call to find the profile of the user
+      const fetchProfile = async () => {
+          // only call if there is currently a user logged in
+          if (user) {
+              const {data, error} = await supabase.from('profiles').select('*').eq('id', user.id).single();
+              if (error) {
+                  console.error('Error fetching profile:', error);
+                  setProfile(null);
+              } else {
+                  setProfile(data);
+              }
+          } else {
+              setProfile(null);
+          }
+      }
+
+      fetchProfile();
+
+      // if there is indeed a profile attributed, try inserting the reservation
+      if (profile != null && event != null) {
+          const {error} = await supabase.from("reservations").insert([
+              {
+                  event_id: event.id,
+                  profile_id: profile.id,
+              },
+          ]);
+
+          if (error) {
+              console.error("Error creating reservation:", error);
+              alert("Issue creating reservation");
+          } else {
+              alert("Seat reserved successfully!");
+          }
+      }
+  }
 
   useEffect(() => {
     if (!id) return;
@@ -66,11 +106,12 @@ export default function EventDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <Spin spinning tip="Loading event..." size="large">
-          <div style={{ width: 0, height: 0 }}></div>
-        </Spin>
-      </div>
+      <main className="flex items-center justify-center">
+        <div className="text-white text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-cyan-500 mx-auto mb-4"></div>
+          <p>Loading events...</p>
+        </div>
+      </main>
     );
   }
 
@@ -125,7 +166,7 @@ export default function EventDetailPage() {
   return (
     <div className="min-h-screen bg-black text-white px-4 py-8 flex justify-center">
       <div className="w-full max-w-3xl space-y-4">
-        <Link href="/" className="text-teal-400 hover:text-teal-300">
+        <Link href="/events" className="text-teal-400 hover:text-teal-300">
           ← Back to all events
         </Link>
 
@@ -194,6 +235,7 @@ export default function EventDetailPage() {
           <Button
             className="bg-[#0BA698] text-white font-semibold hover:bg-[#08957d] mt-6"
             block
+            onClick={handleReserve}
           >
             Reserve a seat
           </Button>
