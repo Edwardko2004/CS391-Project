@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { notFound } from "next/navigation";
-import { Card, Tag, Typography, Row, Col, Progress, Button, Spin } from "antd";
+import { Card, Tag, Typography, Row, Col, Progress, Button, Modal } from "antd";
 import Link from "next/link";
 import { supabase } from "../../lib/supabaseClient";
 import { Event, Profile } from "../../lib/types";
@@ -17,46 +17,68 @@ export default function EventDetailPage() {
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);   // stores the user profile
-  const {user} = useSupabaseAuth();                               // fetch user from supabase auth
+  const { user } = useSupabaseAuth();
+
+  // modal + confirmation code
+  const [confirmationCode, setConfirmationCode] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
   // handle creating a reservation when clicking on a card
   const handleReserve = async () => {
-      // API call to find the profile of the user
-      const fetchProfile = async () => {
-          // only call if there is currently a user logged in
-          if (user) {
-              const {data, error} = await supabase.from('profiles').select('*').eq('id', user.id).single();
-              if (error) {
-                  console.error('Error fetching profile:', error);
-                  setProfile(null);
-              } else {
-                  setProfile(data);
-              }
-          } else {
-              setProfile(null);
-          }
-      }
+    if (!user) {
+      Modal.error({
+        title: "Login required",
+        content: "You must be logged in to reserve a seat.",
+      });
+      return;
+    }
 
-      fetchProfile();
+    // Fetch profile
+    const { data: profileData, error: profileError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
 
-      // if there is indeed a profile attributed, try inserting the reservation
-      if (profile != null && event != null) {
-          const {error} = await supabase.from("reservations").insert([
-              {
-                  event_id: event.id,
-                  profile_id: profile.id,
-              },
-          ]);
+    if (profileError || !profileData) {
+      Modal.error({
+        title: "Profile Error",
+        content: "Could not load your profile.",
+      });
+      return;
+    }
 
-          if (error) {
-              console.error("Error creating reservation:", error);
-              alert("Issue creating reservation");
-          } else {
-              alert("Seat reserved successfully!");
-          }
-      }
-  }
+    if (!event) {
+      Modal.error({
+        title: "Error",
+        content: "Event not loaded.",
+      });
+      return;
+    }
+
+    // Insert reservation and return code
+    const { data, error } = await supabase
+      .from("reservations")
+      .insert([
+        {
+          event_id: event.id,
+          profile_id: profileData.id,
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) {
+      Modal.error({
+        title: "Reservation Failed",
+        content: error.message,
+      });
+      return;
+    }
+
+    setConfirmationCode(data.confirmation_code);
+    setShowModal(true);
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -92,7 +114,7 @@ export default function EventDetailPage() {
         time_length: data.time_length,
         created_at: data.created_at,
         image_url: data.image_url,
-      }
+      };
 
       setEvent(e);
       setLoading(false);
@@ -138,10 +160,12 @@ export default function EventDetailPage() {
   }
 
   const reservedPercent = (event.reservations / event.capacity) * 100;
-  const availability = availabilityInfo[getAvailability(reservedPercent, new Date().toISOString() > event.time)];
+  const availability =
+    availabilityInfo[
+      getAvailability(reservedPercent, new Date().toISOString() > event.time)
+    ];
   const seatsLeft = event.capacity - event.reservations;
   const inactive = new Date().toISOString() > event.time || seatsLeft == 0;
-  console.log(inactive);
 
   const date = new Date(event.time);
 
@@ -178,8 +202,10 @@ export default function EventDetailPage() {
           styles={{
             body: { color: "white" },
           }}
-          cover={event.image_url &&
-            <img src={event.image_url} alt="image" draggable={false}/>
+          cover={
+            event.image_url && (
+              <img src={event.image_url} alt="image" draggable={false} />
+            )
           }
         >
           <Typography.Title level={2} style={{ color: "white" }}>
@@ -237,7 +263,7 @@ export default function EventDetailPage() {
             </p>
           </div>
 
-          {/* Reserve button (hook up to your reserve logic later) */}
+          {/* Reserve button */}
           <Button
             className="bg-[#0BA698] text-white font-semibold hover:bg-[#08957d] mt-6"
             block
@@ -246,6 +272,20 @@ export default function EventDetailPage() {
           >
             Reserve a seat
           </Button>
+
+          {/* Confirmation modal */}
+          <Modal
+            title="Reservation Confirmed"
+            open={showModal}
+            onOk={() => setShowModal(false)}
+            onCancel={() => setShowModal(false)}
+          >
+            <p>Your seat has been reserved!</p>
+            <p>
+              <strong>Confirmation Code: </strong>
+              <code style={{ fontSize: "1.15rem" }}>{confirmationCode}</code>
+            </p>
+          </Modal>
         </Card>
       </div>
     </div>
