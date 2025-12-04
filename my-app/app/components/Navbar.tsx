@@ -1,6 +1,3 @@
-// components/Navbar.tsx
-// the header of the website, used to navigate and log in/out and sign up
-
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -9,12 +6,12 @@ import { useSupabaseAuth } from '../lib/SupabaseProvider'
 import { Layout, Menu } from 'antd'
 import { useRouter, usePathname } from 'next/navigation';
 import { MenuInfo } from 'rc-menu/lib/interface';
+import UserMenu from './UserMenu';
 const { Header } = Layout;
 
 // Navbar component
 export default function Navbar() {
   const { user, signOut, loading } = useSupabaseAuth()            // find the current user with supabase auth
-  const [firstName, setFirstName] = useState<string | null>(null) // the first name of the user
 
   const router = useRouter();       // router used to redirect user to other pages
   const pathname = usePathname();
@@ -30,9 +27,8 @@ export default function Navbar() {
   // nav items for right side - changes based on auth status
   const getRightNavItems = () => {
     if (user) {
-      return [
-        { key: "4", label: "Log Out", href: "/logout" },
-      ]
+      // When logged in, only show UserMenu (handled separately)
+      return []
     } else {
       return [
         { key: "4", label: "Sign up", href: "/signup" },
@@ -40,27 +36,6 @@ export default function Navbar() {
       ]
     }
   }
-
-  // initial API call to find the profile (or specifically the first name) of the user
-  useEffect(() => {
-    const fetchProfile = async () => {
-      // make API call only when there is currently a user
-      if (user) {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('first_name')
-          .eq('id', user.id)
-          .single()
-
-        if (error) console.error('Error fetching profile:', error)
-        else setFirstName(data?.first_name || null)
-      } else {
-        setFirstName(null)
-      }
-    }
-
-    fetchProfile()
-  }, [user])
 
   // handles the logout nav
   const handleLogout = async () => {
@@ -99,9 +74,10 @@ export default function Navbar() {
       <Header style={{ 
         display: 'flex', 
         justifyContent: 'space-between',
-        padding: '0',
+        alignItems: 'center',
+        padding: '0 24px',
         background: '#001529',
-        lineHeight: '64px'
+        height: '64px'
       }}>
         {/* Left side menu */}
         <Menu
@@ -115,23 +91,31 @@ export default function Navbar() {
             flex: 1, 
             minWidth: 0,
             background: 'transparent',
-            border: 'none'
+            border: 'none',
+            lineHeight: '64px'
           }}
         />
 
-        {/* Right side menu */}
-        <Menu
-          onClick={handleClick}
-          theme="dark"
-          mode="horizontal"
-          selectedKeys={[selectedKey]}
-          items={currentRightItems}
-          style={{ 
-            minWidth: 0,
-            background: 'transparent',
-            border: 'none'
-          }}
-        />
+        {/* Right side - UserMenu when logged in, otherwise auth links */}
+        <div className="flex items-center">
+          {user ? (
+            <UserMenu email={user.email || ''} />
+          ) : (
+            <Menu
+              onClick={handleClick}
+              theme="dark"
+              mode="horizontal"
+              selectedKeys={[selectedKey]}
+              items={currentRightItems}
+              style={{ 
+                minWidth: 0,
+                background: 'transparent',
+                border: 'none',
+                lineHeight: '64px'
+              }}
+            />
+          )}
+        </div>
       </Header>
     </div>
   )
