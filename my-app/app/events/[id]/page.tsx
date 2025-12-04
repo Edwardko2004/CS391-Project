@@ -20,44 +20,6 @@ export default function EventDetailPage() {
   const [profile, setProfile] = useState<Profile | null>(null);   // stores the user profile
   const {user} = useSupabaseAuth();                               // fetch user from supabase auth
 
-  // handle creating a reservation when clicking on a card
-  const handleReserve = async () => {
-      // API call to find the profile of the user
-      const fetchProfile = async () => {
-          // only call if there is currently a user logged in
-          if (user) {
-              const {data, error} = await supabase.from('profiles').select('*').eq('id', user.id).single();
-              if (error) {
-                  console.error('Error fetching profile:', error);
-                  setProfile(null);
-              } else {
-                  setProfile(data);
-              }
-          } else {
-              setProfile(null);
-          }
-      }
-
-      fetchProfile();
-
-      // if there is indeed a profile attributed, try inserting the reservation
-      if (profile != null && event != null) {
-          const {error} = await supabase.from("reservations").insert([
-              {
-                  event_id: event.id,
-                  profile_id: profile.id,
-              },
-          ]);
-
-          if (error) {
-              console.error("Error creating reservation:", error);
-              alert("Issue creating reservation");
-          } else {
-              alert("Seat reserved successfully!");
-          }
-      }
-  }
-
   useEffect(() => {
     if (!id) return;
 
@@ -101,9 +63,7 @@ export default function EventDetailPage() {
     fetchEvent();
   }, [id]);
 
-  if (!id) {
-    notFound();
-  }
+  if (!id) notFound();
 
   if (loading) {
     return (
@@ -141,7 +101,46 @@ export default function EventDetailPage() {
   const availability = availabilityInfo[getAvailability(reservedPercent, new Date().toISOString() > event.time)];
   const seatsLeft = event.capacity - event.reservations;
   const inactive = new Date().toISOString() > event.time || seatsLeft == 0;
-  console.log(inactive);
+
+  // handle creating a reservation
+  const handleReserve = async () => {
+    if (inactive) return;
+
+    // API call to find the profile of the user
+    const fetchProfile = async () => {
+      // only call if there is currently a user logged in
+      if (user) {
+        const {data, error} = await supabase.from('profiles').select('*').eq('id', user.id).single();
+        if (error) {
+          console.error('Error fetching profile:', error);
+          setProfile(null);
+        } else {
+          setProfile(data);
+        }
+      } else {
+        setProfile(null);
+      }
+    }
+
+    fetchProfile();
+
+    // if there is indeed a profile attributed, try inserting the reservation
+    if (profile != null && event != null) {
+      const {error} = await supabase.from("reservations").insert([
+        {
+          event_id: event.id,
+          profile_id: profile.id,
+        },
+      ]);
+
+      if (error) {
+        console.error("Error creating reservation:", error);
+        alert("Issue creating reservation");
+      } else {
+        alert("Seat reserved successfully!");
+      }
+    }
+  }
 
   const date = new Date(event.time);
 

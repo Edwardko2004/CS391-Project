@@ -26,26 +26,18 @@ export default function Navbar() {
       key: "0", 
       label: (
         <div 
-          className="flex items-center justify-center rounded-full transition-transform duration-200 hover:scale-110"
-          style={{ 
-            cursor: "pointer",
-            width: "72px",
-            height: "72px"
-          }}
-        >
-          <Image
-            src="/assets/sparklogo-adobe.png"
-            alt="Spark! Bytes Logo"
-            width={64}
-            height={64}
-            priority
-            style={{
-              height: "64px",
-              width: "auto",
-              objectFit: "contain"
-            }}
-          />
-        </div>
+        className="flex items-center gap-1 h-full"
+      >
+        <Image
+          src="/assets/sparklogo-adobe.png"
+          alt="Spark! Bytes Logo"
+          width={56}
+          height={56}
+          priority
+          className="object-contain"
+        />
+        <span className="text-base font-medium">Spark! Bytes</span>
+      </div>
       ), 
       href: "/" 
     },
