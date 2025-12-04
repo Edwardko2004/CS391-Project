@@ -6,11 +6,8 @@ import { useSupabaseAuth } from '../lib/SupabaseProvider'
 import { Layout, Menu } from 'antd'
 import { useRouter, usePathname } from 'next/navigation';
 import { MenuInfo } from 'rc-menu/lib/interface';
-<<<<<<< HEAD
 import Image from 'next/image'
-=======
 import UserMenu from './UserMenu';
->>>>>>> 6a7de3743cb2737074bd052bbe0e5dab3b7cd35b
 const { Header } = Layout;
 
 // Navbar component
