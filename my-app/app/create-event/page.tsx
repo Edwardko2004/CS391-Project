@@ -413,9 +413,7 @@ export default function CreateEventPage() {
                     <div className="flex-1 bg-gray-900 rounded-full h-2 overflow-hidden border border-gray-800">
                       <div
                         style={{
-                          width: form.capacity && parseInt(form.capacity) > 0
-                            ? `${Math.min(((parseInt(form.reserved_seats || "0") / Math.max(1, parseInt(form.capacity))) * 100), 100)}%`
-                            : "0%",
+                          width: "0%",
                         }}
                         className="h-full bg-cyan-400/80"
                       />
