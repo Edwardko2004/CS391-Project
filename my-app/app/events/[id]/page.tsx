@@ -10,12 +10,17 @@ import { Event, Profile } from "../../lib/types";
 import tags from "../../lib/tag";
 import { availabilityInfo, getAvailability } from "../../lib/cardUtil";
 import { useSupabaseAuth } from "@/app/lib/SupabaseProvider";
+import QRCode from "qrcode";
 
 import dynamic from "next/dynamic";
 
 const MapComponent = dynamic(() => import("@/app/components/Map"), {
   ssr: false,
 });
+
+export async function generateQrFromCode(code: string) {
+  return await QRCode.toDataURL(code);
+}
 
 export default function EventDetailPage() {
   
@@ -30,7 +35,8 @@ export default function EventDetailPage() {
   const [confirmationCode, setConfirmationCode] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [coords, setCoords] = useState(null);
-
+  const [qrImage, setQrImage] = useState<string | null>(null);
+  
   
 
   // handle creating a reservation when clicking on a card
@@ -85,8 +91,12 @@ export default function EventDetailPage() {
       });
       return;
     }
-
+    
     setConfirmationCode(data.confirmation_code);
+
+    const qr = await generateQrFromCode(data.confirmation_code);
+    setQrImage(qr);
+
     setShowModal(true);
   };
 
@@ -304,10 +314,21 @@ export default function EventDetailPage() {
             onCancel={() => setShowModal(false)}
           >
             <p>Your seat has been reserved!</p>
+
             <p>
               <strong>Confirmation Code: </strong>
               <code style={{ fontSize: "1.15rem" }}>{confirmationCode}</code>
             </p>
+
+            {qrImage && (
+              <div className="flex justify-center mt-4">
+                <img 
+                  src={qrImage} 
+                  alt="QR Code" 
+                  className="w-48 h-48 border border-gray-300 rounded-lg"
+                />
+              </div>
+            )}
           </Modal>
         </Card>
       </div>
