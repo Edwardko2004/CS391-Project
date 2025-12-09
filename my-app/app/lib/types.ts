@@ -10,6 +10,8 @@ export interface Event {
     location: string;
     organizer: string;
     status: string;
+    latitude: number,      // <-- NEW
+    longitude: number,
     reservations: number;
     capacity: number;
     time: string;

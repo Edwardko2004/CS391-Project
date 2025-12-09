@@ -12,12 +12,18 @@ import {
   CheckCircle,
   AlertCircle,
 } from "lucide-react";
+import dynamic from "next/dynamic";
+
+const MapPicker = dynamic(() => import("../components/MapPicker"), {
+  ssr: false,
+});
 
 export default function CreateEventPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [coords, setCoords] = useState({ lat: null as number | null, lng: null as number | null });
   const [form, setForm] = useState({
     title: "",
     location: "",
@@ -30,6 +36,11 @@ export default function CreateEventPage() {
     time: "",
     time_length: "",
   });
+
+  const handleMapSelect = (lat: number, lng: number, address: string) => {
+    setCoords({ lat, lng });
+    setForm({ ...form, location: address });
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -71,8 +82,10 @@ export default function CreateEventPage() {
         {
           title: form.title || null,
           location: form.location || null,
+          latitude: coords.lat,
+          longitude: coords.lng,
           capacity: form.capacity ? parseInt(form.capacity) : null,
-          status: form.status || "open",
+          status: form.status,
           created_at: new Date().toISOString(),
           description: form.description || null,
           organizer: form.organizer || null,
@@ -191,7 +204,7 @@ export default function CreateEventPage() {
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               {/* Organizer */}
               <div>
                 <label className="text-xs text-gray-300 font-medium">Organizer</label>
@@ -206,20 +219,20 @@ export default function CreateEventPage() {
                   <Users className="absolute left-3 top-3 text-cyan-400" />
                 </div>
               </div>
-
+              <br />
               {/* Location */}
               <div>
                 <label className="text-xs text-gray-300 font-medium">Location</label>
-                <div className="relative mt-2">
+                <div className="mt-2">
+                  <MapPicker onSelect={handleMapSelect} />
+
                   <input
                     name="location"
                     value={form.location}
                     onChange={handleChange}
-                    placeholder="CAS Lobby"
-                    required
-                    className="w-full p-3 pl-10 bg-gray-900 border border-gray-700 text-white rounded-lg focus:ring-2 focus:ring-cyan-500 focus:outline-none"
+                    placeholder="Click on map or search for a place"
+                    className="w-full mt-3 p-3 bg-gray-900 border border-gray-700 text-white rounded-lg"
                   />
-                  <MapPin className="absolute left-3 top-3 text-cyan-400" />
                 </div>
               </div>
             </div>
