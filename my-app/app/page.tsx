@@ -12,7 +12,9 @@ export default function Landing() {
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       setUser(session?.user || null);
       setLoading(false);
     };
@@ -20,12 +22,12 @@ export default function Landing() {
     getInitialSession();
 
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setUser(session?.user || null);
-        setLoading(false);
-      }
-    );
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setUser(session?.user || null);
+      setLoading(false);
+    });
 
     return () => subscription.unsubscribe();
   }, []);
@@ -68,7 +70,8 @@ export default function Landing() {
         <div className="w-24 h-1 bg-cyan-500 mx-auto mb-6 rounded-full" />
 
         <p className="text-xl text-gray-300 mb-10 max-w-xl mx-auto">
-          Discover tasty pop-ups, food events, and campus gatherings — all in one place.
+          Discover tasty pop-ups, food events, and campus gatherings — all in
+          one place.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">

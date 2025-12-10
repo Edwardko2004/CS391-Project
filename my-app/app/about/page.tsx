@@ -9,9 +9,10 @@ export default function AboutPage() {
         <div className="w-20 h-1 bg-cyan-500 mx-auto mb-8 rounded-full" />
 
         <p className="text-lg text-gray-300 mb-10 text-center">
-          Spark! Bytes connects students and local food creators through pop-ups, tastings,
-          and community-driven events across campus. Our goal is to make food events easy to
-          discover, create, and share — no matter your role.
+          Spark! Bytes connects students and local food creators through
+          pop-ups, tastings, and community-driven events across campus. Our goal
+          is to make food events easy to discover, create, and share — no matter
+          your role.
         </p>
 
         <section className="mb-16 text-center">
@@ -19,17 +20,18 @@ export default function AboutPage() {
           <div className="flex flex-col items-center space-y-4">
             <div className="bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-gray-700 shadow-2xl text-left">
               <p className="text-gray-200 text-base">
-                 <strong>Discover</strong> upcoming food events in one place
+                <strong>Discover</strong> upcoming food events in one place
               </p>
             </div>
             <div className="bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-gray-700 shadow-2xl text-left">
               <p className="text-gray-200 text-base">
-                 <strong>Create</strong> and promote your own pop-ups and gatherings
+                <strong>Create</strong> and promote your own pop-ups and
+                gatherings
               </p>
             </div>
             <div className="bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-gray-700 shadow-2xl text-left">
               <p className="text-gray-200 text-base">
-                 <strong>Filter</strong> by tags, time, and popularity
+                <strong>Filter</strong> by tags, time, and popularity
               </p>
             </div>
           </div>
@@ -52,7 +54,7 @@ export default function AboutPage() {
             {/* Team Member 2 */}
             <div className="flex flex-col items-center">
               <img
-                src="/team2.jpg"
+                src="/edward.png"
                 alt="Edward Ko"
                 className="w-32 h-32 rounded-full object-cover shadow-lg border-1 border-cyan-500"
               />
@@ -67,7 +69,9 @@ export default function AboutPage() {
                 alt="Rohaan Navin Chablani Mirpuri"
                 className="w-32 h-32 rounded-full object-cover shadow-lg border-1 border-cyan-500"
               />
-              <h3 className="mt-4 text-lg font-semibold">Rohaan Navin Chablani Mirpuri</h3>
+              <h3 className="mt-4 text-lg font-semibold">
+                Rohaan Navin Chablani Mirpuri
+              </h3>
               <p className="text-gray-400 text-sm">Back-end Engineer</p>
             </div>
 
@@ -96,5 +100,5 @@ export default function AboutPage() {
         </section>
       </div>
     </main>
-  )
+  );
 }
