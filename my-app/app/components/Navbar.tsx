@@ -12,9 +12,9 @@ const { Header } = Layout;
 
 // Navbar component
 export default function Navbar() {
-  const { user, signOut, loading } = useSupabaseAuth()            // find the current user with supabase auth
+  const { user, signOut, loading } = useSupabaseAuth()
 
-  const router = useRouter();       // router used to redirect user to other pages
+  const router = useRouter();
   const pathname = usePathname();
 
   // nav items for left side (same for both logged in/out)
@@ -22,19 +22,17 @@ export default function Navbar() {
     { 
       key: "0", 
       label: (
-        <div 
-        className="flex items-center gap-1 h-full"
-      >
-        <Image
-          src="/assets/sparklogo-adobe.png"
-          alt="Spark! Bytes Logo"
-          width={56}
-          height={56}
-          priority
-          className="object-contain"
-        />
-        <span className="text-base font-medium">Spark! Bytes</span>
-      </div>
+        <div className="flex items-center gap-1 h-full">
+          <Image
+            src="/assets/sparklogo-adobe.png"
+            alt="Spark! Bytes Logo"
+            width={56}
+            height={56}
+            priority
+            className="object-contain"
+          />
+          <span className="text-base font-medium">Spark! Bytes</span>
+        </div>
       ), 
       href: "/" 
     },
@@ -67,7 +65,7 @@ export default function Navbar() {
     const allItems = [...leftNavItems, ...getRightNavItems()]
     const key = parseInt(e.key);
     
-    // Handle logout separately <- this is not a great solution imo, change maybe?
+    // Handle logout separately
     if (user && key === 4) {
       handleLogout();
       return;

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { useRouter } from 'next/navigation'
-import { User, Settings, LogOut, User as UserIcon } from 'lucide-react'
+import { User, Settings, LogOut, User as UserIcon, Ticket, Users } from 'lucide-react'
 
 interface UserMenuProps {
   email: string
@@ -60,6 +60,16 @@ export default function UserMenu({ email }: UserMenuProps) {
     router.push('/profile/settings')
   }
 
+  const handleReservationsClick = () => {
+    setIsOpen(false)
+    router.push('/reservations')
+  }
+
+  const handleHostingClick = () => {
+    setIsOpen(false)
+    router.push('/hosted-events')
+  }
+
   const handleLogout = async () => {
     setIsOpen(false)
     await supabase.auth.signOut()
@@ -85,7 +95,7 @@ export default function UserMenu({ email }: UserMenuProps) {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-gray-900 border border-gray-700 rounded-lg shadow-lg z-50 overflow-hidden">
+        <div className="absolute right-0 mt-2 w-56 bg-gray-900 border border-gray-700 rounded-lg shadow-lg z-50 overflow-hidden">
           {/* User Info Section */}
           <div className="px-4 py-3 border-b border-gray-700">
             <p className="text-sm font-medium text-white truncate">{displayName}</p>
@@ -96,23 +106,43 @@ export default function UserMenu({ email }: UserMenuProps) {
           <div className="py-1">
             <button
               onClick={handleProfileClick}
-              className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors"
+              className="flex items-center w-full px-4 py-2.5 text-sm text-gray-300 hover:bg-gray-800 transition-colors"
             >
-              <User size={16} className="mr-3" />
+              <User size={16} className="mr-3 text-cyan-400" />
               Profile
             </button>
             
             <button
               onClick={handleSettingsClick}
-              className="flex items-center w-full px-4 py-2 text-sm text-gray-300 hover:bg-gray-800 transition-colors"
+              className="flex items-center w-full px-4 py-2.5 text-sm text-gray-300 hover:bg-gray-800 transition-colors"
             >
-              <Settings size={16} className="mr-3" />
+              <Settings size={16} className="mr-3 text-cyan-400" />
               Settings
+            </button>
+
+            <div className="border-t border-gray-800 my-1"></div>
+            
+            <button
+              onClick={handleReservationsClick}
+              className="flex items-center w-full px-4 py-2.5 text-sm text-gray-300 hover:bg-gray-800 transition-colors"
+            >
+              <Ticket size={16} className="mr-3 text-cyan-400" />
+              Reservations
             </button>
             
             <button
+              onClick={handleHostingClick}
+              className="flex items-center w-full px-4 py-2.5 text-sm text-gray-300 hover:bg-gray-800 transition-colors"
+            >
+              <Users size={16} className="mr-3 text-cyan-400" />
+              Hosting
+            </button>
+
+            <div className="border-t border-gray-800 my-1"></div>
+            
+            <button
               onClick={handleLogout}
-              className="flex items-center w-full px-4 py-2 text-sm text-red-400 hover:bg-gray-800 transition-colors"
+              className="flex items-center w-full px-4 py-2.5 text-sm text-red-400 hover:bg-gray-800 transition-colors"
             >
               <LogOut size={16} className="mr-3" />
               Log Out
