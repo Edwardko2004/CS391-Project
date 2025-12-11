@@ -17,32 +17,30 @@ const { Search } = Input;
 const sortFunctions: Record<string, (a: Event, b: Event) => number> = {
   soonest: (a, b) => new Date(a.time).getTime() - new Date(b.time).getTime(),
   latest: (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime(),
-  fullest: (a, b) =>
-    b.reservations / b.capacity - a.reservations / a.capacity,
-  emptiest: (a, b) =>
-    a.reservations / a.capacity - b.reservations / b.capacity,
+  fullest: (a, b) => b.reservations / b.capacity - a.reservations / a.capacity,
+  emptiest: (a, b) => a.reservations / a.capacity - b.reservations / b.capacity,
 };
 
 // Events component
 export default function Events() {
-  const [searchQuery, setSearchQuery] = useState("");           // the search query for events
-  const [events, setEvents] = useState<Event[]>([]);            // the list of events
-  const [doFetch, setDoFetch] = useState(true);                 // checks if we need to query the DB
-  const [isLoading, setIsLoading] = useState(false);            // checks if the query is ongoing
-  const [tags, setTags] = useState<string[]>([]);               // list of tags to search for events
-  const [sortBy, setSortBy] = useState("soonest");              // the function we want to sort by
-  const [minDate, setMinDate] = useState<string | null>(null);  // the minimum date an event starts
-  const [maxDate, setMaxDate] = useState<string | null>(null);  // the maximum date an event starts
-  const [showOld, setShowOld] = useState(false);                // show old events that have passed
-  const [page, setPage] = useState(1);                          // the current page we are one
-  const [total, setTotal] = useState(0);                        // the total number of events queried
-  const [pageSize, setPageSize] = useState(10);                 // the page size
+  const [searchQuery, setSearchQuery] = useState(""); // the search query for events
+  const [events, setEvents] = useState<Event[]>([]); // the list of events
+  const [doFetch, setDoFetch] = useState(true); // checks if we need to query the DB
+  const [isLoading, setIsLoading] = useState(false); // checks if the query is ongoing
+  const [tags, setTags] = useState<string[]>([]); // list of tags to search for events
+  const [sortBy, setSortBy] = useState("soonest"); // the function we want to sort by
+  const [minDate, setMinDate] = useState<string | null>(null); // the minimum date an event starts
+  const [maxDate, setMaxDate] = useState<string | null>(null); // the maximum date an event starts
+  const [showOld, setShowOld] = useState(false); // show old events that have passed
+  const [page, setPage] = useState(1); // the current page we are one
+  const [total, setTotal] = useState(0); // the total number of events queried
+  const [pageSize, setPageSize] = useState(10); // the page size
 
   // useeffect to initialize the first API call
   useEffect(() => {
     if (!doFetch) return; // if we dont need to fetch
-    setIsLoading(true);   // set loading to true
-    setDoFetch(false);    // so we dont keep fetching
+    setIsLoading(true); // set loading to true
+    setDoFetch(false); // so we dont keep fetching
 
     // calls the supabase API for the list of events
     async function fetchData() {
@@ -52,7 +50,7 @@ export default function Events() {
         .select(`*, reservations(count)`)
         .or(
           `title.ilike.%${searchQuery}%,location.ilike.%${searchQuery}%,organizer.ilike.%${searchQuery}%`
-        )
+        );
 
       // apply the filters to the queries
       if (tags.length > 0) query = query.contains("tags", tags);
@@ -71,7 +69,7 @@ export default function Events() {
         console.error("ERROR:", error);
       } else {
         // map the data we got into a list of events
-        let events: Event[] = data.map(event => ({
+        let events: Event[] = data.map((event) => ({
           id: event.id,
           title: event.title,
           description: event.description,
@@ -93,7 +91,7 @@ export default function Events() {
         setTotal(events.length);
 
         // sort and paginate
-        events = events.sort(sortFunctions[sortBy])
+        events = events.sort(sortFunctions[sortBy]);
         const start = (page - 1) * pageSize;
         const end = start + pageSize;
         events = events.slice(start, end);
@@ -102,7 +100,7 @@ export default function Events() {
         setEvents(events || []);
       }
 
-      setIsLoading(false);  // we are done fetching data
+      setIsLoading(false); // we are done fetching data
     }
 
     fetchData();
@@ -146,14 +144,14 @@ export default function Events() {
   const handleSwitch = (b: boolean) => {
     setShowOld(b);
     setDoFetch(true);
-  }
+  };
 
   // begin a query after paginating
-  const handlePagination = (p: number, s:number) => {
+  const handlePagination = (p: number, s: number) => {
     setPage(p);
     setPageSize(s);
     setDoFetch(true);
-  }
+  };
 
   // return the final component
   return (
@@ -191,16 +189,24 @@ export default function Events() {
             className="w-full"
           />
           <EventsTags tags={tags} onChange={handleTags} />
-          <Switch checkedChildren="Show Old" unCheckedChildren="Upcoming Only" onChange={handleSwitch}/>
+          <Switch
+            checkedChildren="Show Old"
+            unCheckedChildren="Upcoming Only"
+            onChange={handleSwitch}
+          />
         </div>
       </div>
       <EventsHandler events={events} loading={isLoading} />
-      <Pagination
-        current={page}
-        total={total}
-        showSizeChanger
-        onChange={handlePagination}
-      />
+      {/* Centered pagination */}
+      <div className="mt-6 flex justify-center items-center">
+        <Pagination
+          current={page}
+          total={total}
+          showSizeChanger
+          onChange={handlePagination}
+          pageSize={pageSize}
+        />
+      </div>
     </div>
   );
 }

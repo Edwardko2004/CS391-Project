@@ -1,147 +1,194 @@
 // components/EventCard.tsx
-// component that renders a single event card for the events listing
+// Renders a single event card styled like the CreateEvent preview card
 
 import React from "react";
-import { Card, Col, Typography, Button, Progress, Row, Tag } from "antd";
+import { Card, Col, Typography, Button, Progress, Row } from "antd";
 import { Event } from "../lib/types";
-import tags from "../lib/tag";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 import { availabilityInfo, getAvailability } from "../lib/cardUtil";
 
-// returns the color of an existing tag
-const getFoodColor = (tag: string) => {
-  return tags[tag as keyof typeof tags] || tags.other;
-};
+const EventCard: React.FC<{ event: Event }> = ({ event }) => {
+  const router = useRouter();
 
-// the properties to pass into an event card
-interface EventCardProp {
-  event: Event;
-}
+  const reservedPercent =
+    event.capacity && event.capacity > 0
+      ? (event.reservations / event.capacity) * 100
+      : 0;
 
-// EventCard component
-const EventCard: React.FC<EventCardProp> = ({ event }) => {
-  const reservedPercent = (event.reservations / event.capacity) * 100;      // percent of an event's capacity
-  const availability = availabilityInfo[getAvailability(reservedPercent, new Date().toISOString() > event.time)];  // info and styling of availiability
-  const date = new Date(event.time);    // date object storing the event's date
-  const router = useRouter();           // router to redirect the page to the detailed page
+  const availability =
+    availabilityInfo[
+      getAvailability(reservedPercent, new Date().toISOString() > event.time)
+    ];
 
-  // shows the list of tags associated with this event
-  const TagList = () => (
-    <div style={{ marginBottom: 8 }}>
-      {event.tags.map((tag, index) => (
-        <Tag key={index} color={getFoodColor(tag).color}>
-          {tag}
-        </Tag>
-      ))}
-    </div>
-  );
+  const seatsLeft =
+    event.capacity && event.capacity > 0
+      ? event.capacity - event.reservations
+      : null;
 
-  // provides info of the availability of the event
+  const seatsLabel =
+    seatsLeft === null ? "Seats TBD" : `${seatsLeft} seats left`;
+
+  const date = new Date(event.time);
+  const mainTag = event.tags?.[0];
+
+  const handleCardClick = () => {
+    router.push(`/events/${event.id}`);
+  };
+
   const EventStatus = () => (
     <>
-      <Row justify="space-between" style={{ width: "100%" }}>
+      <Row justify="space-between" style={{ width: "100%", marginBottom: 8 }}>
         <Col>
-          <Typography.Text style={{ color: availability.color }}>
+          <Typography.Text style={{ color: "#86efac", fontWeight: 600 }}>
             <availability.icon /> {availability.label}
           </Typography.Text>
         </Col>
         <Col>
-          <Typography.Text style={{ color: "#97a5adff" }}>
-            {event.reservations} / {event.capacity} reserved
+          <Typography.Text style={{ color: "#94a3b8" }}>
+            {event.reservations} / {event.capacity ?? "—"} reserved{" "}
+            {seatsLeft !== null && `(${seatsLeft} left)`}
           </Typography.Text>
         </Col>
       </Row>
+
       <Progress
         percent={reservedPercent}
-        strokeColor={availability.color}
+        strokeColor="#86efac"
+        trailColor="#1e293b"
         showInfo={false}
-        trailColor="#1F2937"
+        style={{ marginBottom: 12 }}
       />
     </>
   );
 
-  // icon with availability info of an event
-  const StatusIcon = () => (
-    <Tag icon={<availability.icon />} color={availability.color}>
-      {event.capacity - event.reservations} seats left
-    </Tag>
-  );
-
-  // provide info on the date, time, location, and organizer of the event
   const EventInfo = () => {
-    // reformat the time and date into something more readable
-    const formatted_date = date.toLocaleDateString("en-US", {
-      weekday: "long",
-      month: "long",
+    const formattedStartDateTime = date.toLocaleString("en-US", {
+      month: "short",
       day: "numeric",
-    });
-
-    const formatted_time = date.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
       hour12: true,
     });
 
-    // find the end time by adding event length to starting time
-    const end_date = new Date(event.time);
-    end_date.setMinutes(end_date.getMinutes() + event.time_length);
+    const endDate = new Date(event.time);
+    endDate.setMinutes(endDate.getMinutes() + event.time_length);
 
-    const formatted_endtime = end_date.toLocaleTimeString("en-US", {
+    const formattedEndTime = endDate.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
       hour12: true,
     });
 
     return (
-      <Typography.Paragraph style={{ color: "#FFFFFF" }}>
-        <br />
-        <p>{event.description}</p>
-        <p>
-          <strong className="cardinfo">Organizer: </strong>
-          {event.organizer}
+      <Typography.Paragraph
+        style={{
+          color: "#bfc7d5",
+          marginBottom: 0,
+          marginTop: 10,
+          fontSize: 13,
+        }}
+      >
+        <p className="mb-2 line-clamp-3">{event.description}</p>
+
+        <p className="mb-1">
+          <strong className="text-white">Location:</strong> {event.location}
         </p>
-        <p>
-          <strong className="cardinfo">Location: </strong>
-          {event.location}
-        </p>
-        <p>
-          <strong className="cardinfo">Time: </strong>
-          {formatted_date}, {formatted_time} to {formatted_endtime}
+
+        <p className="mb-0">
+          <strong className="text-white">Time:</strong> {formattedStartDateTime}{" "}
+          – {formattedEndTime}
         </p>
       </Typography.Paragraph>
     );
   };
 
-  // handle showing the detail view of the event when clicking on its card
-  const handleCardClick = () => {
-    router.push(`/events/${event.id}`)
-  };
-
-  // return the full component
   return (
     <Col xs={24} sm={12} md={8}>
       <Card
         hoverable
-        className="bg-[#111827] border border-[#2A2A2A] text-white rounded-lg shadow-md transition-transform hover:scale-[1.02]"
-        title={<span className="text-white font-semibold">{event.title}</span>}
         onClick={handleCardClick}
-        extra={<StatusIcon />}
-        cover={event.image_url &&
-          <img src={event.image_url} alt="image" draggable={false}
-          style={{
-            height: 100,
-            objectFit: "cover"
-          }}
-          />
+        className="
+          bg-gradient-to-br from-gray-900/50 to-gray-900/30
+          border border-gray-700
+          rounded-xl
+          text-white
+          shadow-xl
+          transition-transform
+          hover:scale-[1.02]
+          overflow-hidden
+        "
+        cover={
+          event.image_url && (
+            <img
+              src={event.image_url}
+              alt="Event"
+              draggable={false}
+              style={{
+                height: 135,
+                objectFit: "cover",
+                borderTopLeftRadius: "0.75rem", // rounded-xl
+                borderTopRightRadius: "0.75rem",
+              }}
+            />
+          )
         }
       >
-        <TagList />
+        {/* CENTERED HEADER */}
+        <div className="flex flex-col items-center text-center gap-4 mb-6">
+          {/* Seats pill – now same dark-blue theme */}
+          <span
+            className="
+              inline-flex items-center whitespace-nowrap px-4 py-1.5 rounded-full
+              bg-emerald-900/20 text-emerald-200
+              text-xs font-semibold
+              border border-emerald-700/40
+            "
+          >
+            {seatsLabel}
+          </span>
+
+          {/* Title */}
+          <h3 className="text-lg font-semibold text-white leading-tight break-words">
+            {event.title}
+          </h3>
+
+          {/* Tag pill – updated to match */}
+          {mainTag && (
+            <span
+              className="
+      inline-flex items-center px-3 py-1 rounded-full
+      bg-blue-900/30 text-cyan-200
+      border border-blue-500/40
+      text-[11px] uppercase tracking-[0.18em] font-medium
+    "
+            >
+              {mainTag.toUpperCase()}
+            </span>
+          )}
+        </div>
+
+        {/* Availability + bar */}
         <EventStatus />
+
+        {/* Info */}
         <EventInfo />
+
+        {/* Button */}
         <Button
           block
-          className="bg-[#0BA698] text-white font-semibold hover:bg-[#08957d] mt-4"
-          onClick={handleCardClick}
+          className="
+            bg-gradient-to-r from-cyan-500 to-blue-500
+            text-black font-semibold
+            mt-4 py-5
+            rounded-lg shadow-lg
+            hover:scale-[1.02]
+            transition
+            border-none
+          "
+          onClick={(e) => {
+            e.stopPropagation();
+            handleCardClick();
+          }}
         >
           View Details
         </Button>
