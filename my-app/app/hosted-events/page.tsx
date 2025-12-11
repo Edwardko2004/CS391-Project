@@ -3,30 +3,20 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabaseClient';
+import { Reservation, Event, Profile } from '../lib/types';
 import { getUserUpcomingHostedEvents, getUserPastHostedEvents, checkInReservation } from '../lib/supabaseQueries';
 import { Calendar, MapPin, Users, Hash, CheckCircle, XCircle, User, Copy } from 'lucide-react';
 
-interface ReservationDetail {
-  id: number;
-  profile_id: string;
-  confirmation_code: string;
-  is_checked_in: boolean;
-  checked_in_at: string | null;
-  profiles: {
-    first_name: string;
-    last_name: string;
-    email: string;
-  };
+// combine event type with list of associated reservations
+interface EventReservations {
+  event: Event,
+  reservations: Reservation[],
 }
 
-interface HostedEvent {
-  id: number;
-  title: string;
-  time: string;
-  location: string;
-  capacity: number;
-  status: string;
-  reservations: ReservationDetail[];
+// combine profile with reservation type
+interface ProfileReservation {
+  profile: Profile,
+  reservation: Reservation,
 }
 
 export default function HostedEventsPage() {
@@ -34,9 +24,10 @@ export default function HostedEventsPage() {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
-  const [upcomingEvents, setUpcomingEvents] = useState<HostedEvent[]>([]);
-  const [pastEvents, setPastEvents] = useState<HostedEvent[]>([]);
-  const [selectedEvent, setSelectedEvent] = useState<HostedEvent | null>(null);
+  const [upcomingEvents, setUpcomingEvents] = useState<EventReservations[]>([]);
+  const [pastEvents, setPastEvents] = useState<EventReservations[]>([]);
+  const [selectedEvent, setSelectedEvent] = useState<EventReservations | null>(null);
+  const [selectedProfiles, setSelectedProfiles] = useState<ProfileReservation[] | null>(null);
 
   useEffect(() => {
     fetchUserData();
@@ -61,16 +52,30 @@ export default function HostedEventsPage() {
       const pastPromise = getUserPastHostedEvents(userId);
       
       const [upcomingResult, pastResult] = await Promise.all([upcomingPromise, pastPromise]);
+
+      console.log(upcomingResult);
+      console.log(pastResult);
       
       if (upcomingResult.data) {
-        const events = upcomingResult.data as HostedEvent[];
-        setUpcomingEvents(events);
-        if (events.length > 0) setSelectedEvent(events[0]);
+        const upcoming: EventReservations[] = upcomingResult.data?.map((row) => ({
+          reservations: row.reservations as Reservation[],
+          event: { ... row} as Event,
+        })) ?? [];
+
+        setUpcomingEvents(upcoming);
+        if (upcoming.length > 0) handleSelected(upcoming[0]);
       }
+
       if (pastResult.data) {
-        const events = pastResult.data as HostedEvent[];
-        setPastEvents(events);
-        if (events.length > 0 && !selectedEvent) setSelectedEvent(events[0]);
+        const past: EventReservations[] = pastResult.data?.map((row) => ({
+          reservations: row.reservations as Reservation[],
+          event: { ... row} as Event,
+        })) ?? [];
+
+        setPastEvents(past);
+        if (past.length > 0 && !selectedEvent) {
+          handleSelected(past[0]);
+        }
       }
     } catch (error) {
       console.error('Error fetching hosted events:', error);
@@ -111,12 +116,42 @@ export default function HostedEventsPage() {
 
   const currentEvents = activeTab === 'upcoming' ? upcomingEvents : pastEvents;
 
-  const getEventStats = (event: HostedEvent) => {
+  const getEventStats = (event: EventReservations) => {
     const checkedIn = event.reservations?.filter(r => r.is_checked_in).length || 0;
     const total = event.reservations?.length || 0;
     const notCheckedIn = total - checkedIn;
     return { checkedIn, notCheckedIn, total };
   };
+
+  const handleSelected = async (evres: EventReservations) => {
+    setSelectedEvent(evres);
+    getEventProfiles(evres);
+  }
+
+  // get the list of profiles from the reservations 
+  const getEventProfiles = async (event: EventReservations) => {
+    if (!event) return [];
+
+    // get the list of all ids of profiles, no duplicates
+    const profileIds = [... new Set(event.reservations?.map(r => r.profile_id))];
+
+    // fetch the profiles from supabase
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .in("id", profileIds);
+
+    if (error) throw error;
+
+    if (data) {
+      const prres: ProfileReservation[] = data.map((row) => ({
+        profile: row as Profile,
+        reservation: event.reservations.find(r => r.profile_id === row.id) as Reservation,
+      })) ?? [];
+
+      setSelectedProfiles(prres);
+    }
+  }
 
   if (loading) {
     return (
@@ -142,7 +177,7 @@ export default function HostedEventsPage() {
           <button
             onClick={() => {
               setActiveTab('upcoming');
-              if (upcomingEvents.length > 0) setSelectedEvent(upcomingEvents[0]);
+              if (upcomingEvents.length > 0) handleSelected(upcomingEvents[0]);
             }}
             className={`px-4 py-2 rounded-md font-medium transition ${
               activeTab === 'upcoming'
@@ -158,7 +193,7 @@ export default function HostedEventsPage() {
           <button
             onClick={() => {
               setActiveTab('past');
-              if (pastEvents.length > 0) setSelectedEvent(pastEvents[0]);
+              if (pastEvents.length > 0) handleSelected(pastEvents[0]);
             }}
             className={`px-4 py-2 rounded-md font-medium transition ${
               activeTab === 'past'
@@ -196,24 +231,24 @@ export default function HostedEventsPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {currentEvents.map((event) => {
-                  const stats = getEventStats(event);
+                {currentEvents.map((evres) => {
+                  const stats = getEventStats(evres);
                   return (
                     <div
-                      key={event.id}
-                      onClick={() => setSelectedEvent(event)}
+                      key={evres.event.id}
+                      onClick={() => handleSelected(evres)}
                       className={`bg-gray-900/50 backdrop-blur-sm border rounded-lg p-4 cursor-pointer transition-all hover:border-cyan-500/50 ${
-                        selectedEvent?.id === event.id
+                        selectedEvent?.event.id === evres.event.id
                           ? 'border-cyan-500'
                           : 'border-gray-700'
                       }`}
                     >
                       <div className="flex justify-between items-start">
                         <div className="flex-1">
-                          <h3 className="font-semibold mb-1 line-clamp-2">{event.title}</h3>
+                          <h3 className="font-semibold mb-1 line-clamp-2">{evres.event.title}</h3>
                           <div className="flex items-center text-sm text-gray-400">
                             <Calendar size={12} className="mr-1" />
-                            <span>{formatDate(event.time)}</span>
+                            <span>{formatDate(evres.event.time)}</span>
                           </div>
                         </div>
                       </div>
@@ -246,15 +281,15 @@ export default function HostedEventsPage() {
             {selectedEvent ? (
               <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-700 rounded-lg p-4">
                 <div className="mb-4">
-                  <h3 className="font-semibold mb-2">{selectedEvent.title}</h3>
+                  <h3 className="font-semibold mb-2">{selectedEvent.event.title}</h3>
                   <div className="space-y-2 text-sm text-gray-300">
                     <div className="flex items-center">
                       <Calendar size={12} className="mr-2 text-cyan-400" />
-                      {formatDate(selectedEvent.time)}
+                      {formatDate(selectedEvent.event.time)}
                     </div>
                     <div className="flex items-center">
                       <MapPin size={12} className="mr-2 text-cyan-400" />
-                      <span className="line-clamp-2">{selectedEvent.location}</span>
+                      <span className="line-clamp-2">{selectedEvent.event.location}</span>
                     </div>
                     <div className="flex items-center">
                       <Users size={12} className="mr-2 text-cyan-400" />
@@ -265,11 +300,11 @@ export default function HostedEventsPage() {
 
                 {/* Attendee List */}
                 <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                  {selectedEvent.reservations?.map((reservation) => (
+                  {selectedProfiles && selectedProfiles.map((prres: ProfileReservation) => (
                     <div
-                      key={reservation.id}
+                      key={prres.reservation.id}
                       className={`p-3 rounded border ${
-                        reservation.is_checked_in
+                        prres.reservation.is_checked_in
                           ? 'border-green-800/30 bg-green-900/10'
                           : 'border-gray-700 bg-gray-800/30'
                       }`}
@@ -277,13 +312,13 @@ export default function HostedEventsPage() {
                       <div className="flex justify-between items-start mb-1">
                         <div className="flex-1">
                           <div className="font-medium">
-                            {reservation.profiles.first_name} {reservation.profiles.last_name}
+                            {prres.profile.first_name} {prres.profile.last_name}
                           </div>
-                          <div className="text-xs text-gray-400 truncate">{reservation.profiles.email}</div>
+                          <div className="text-xs text-gray-400 truncate">{prres.profile.email}</div>
                         </div>
-                        {!reservation.is_checked_in && activeTab === 'upcoming' && (
+                        {!prres.reservation.is_checked_in && activeTab === 'upcoming' && (
                           <button
-                            onClick={() => handleCheckIn(reservation.id)}
+                            onClick={() => handleCheckIn(prres.reservation.id)}
                             className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs px-2 py-1 rounded transition ml-2"
                           >
                             Check In
@@ -295,12 +330,12 @@ export default function HostedEventsPage() {
                           <Hash size={10} className="mr-1 text-cyan-400" />
                           <code 
                             className="font-mono bg-black/30 px-2 py-1 rounded cursor-pointer hover:bg-black/50"
-                            onClick={() => copyConfirmationCode(reservation.confirmation_code)}
+                            onClick={() => copyConfirmationCode(prres.reservation.confirmation_code)}
                           >
-                            {reservation.confirmation_code}
+                            {prres.reservation.confirmation_code}
                           </code>
                         </div>
-                        {reservation.is_checked_in ? (
+                        {prres.reservation.is_checked_in ? (
                           <span className="text-green-400 text-xs flex items-center">
                             <CheckCircle size={10} className="mr-1" />
                             Checked In

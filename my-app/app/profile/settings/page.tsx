@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '../../lib/supabaseClient'
+import { Profile } from '../../lib/types'
 import { ArrowLeft, Save, User, Mail, Lock, Bell } from 'lucide-react'
 
 export default function SettingsPage() {
@@ -11,6 +12,9 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [changingPassword, setChangingPassword] = useState(false)
   const [message, setMessage] = useState<string>('')
+
+  // actual profile
+  const [profile, setProfile] = useState<Profile|null>(null)
 
   // Profile form state
   const [formData, setFormData] = useState({
@@ -32,13 +36,21 @@ export default function SettingsPage() {
         return
       }
 
+      // make api call to find the profile associated with the user 
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+      if (profileError) throw profileError;
+      setProfile(profileData);
       setFormData(prev => ({
         ...prev,
-        firstName: user.user_metadata?.first_name || '',
-        lastName: user.user_metadata?.last_name || '',
-        email: user.email || ''
+        firstName: profileData.first_name,
+        lastName: profileData.last_name,
+        email: profileData.email
       }))
-      
       setLoading(false)
     }
 
@@ -74,12 +86,19 @@ export default function SettingsPage() {
     }, 3000) // Force refresh after 3 seconds
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        data: {
+      // make sure there is a profile there before we try
+      if (profile == null) throw new Error("no profile found!");
+
+      // update the profile model on supabase
+      const { data, error } = await supabase
+        .from("profiles")
+        .update({
           first_name: formData.firstName,
-          last_name: formData.lastName
-        }
-      })
+          last_name: formData.lastName,
+        })
+        .eq("id", profile.id)
+        .select()
+        .single();
 
       clearTimeout(forceRefreshTimeout) // Cancel the force refresh if success
 

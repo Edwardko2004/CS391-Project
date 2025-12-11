@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient';
 
+// get the list of upcoming reservations of a user
 export async function getUserUpcomingReservations(userId: string) {
   const { data, error } = await supabase
     .from('reservations')
@@ -20,6 +21,7 @@ export async function getUserUpcomingReservations(userId: string) {
   return { data, error };
 }
 
+// get the list of previous reservations of a user
 export async function getUserPastReservations(userId: string) {
   const { data, error } = await supabase
     .from('reservations')
@@ -40,52 +42,30 @@ export async function getUserPastReservations(userId: string) {
   return { data, error };
 }
 
+// get the list of upcoming events hosted by a user
 export async function getUserUpcomingHostedEvents(userId: string) {
   const { data, error } = await supabase
-    .from('events')
+    .from("events")
     .select(`
       *,
-      reservations (
-        id,
-        profile_id,
-        confirmation_code,
-        is_checked_in,
-        checked_in_at,
-        profiles (
-          first_name,
-          last_name,
-          email
-        )
-      )
+      reservations:event_id (*)
     `)
-    .eq('organizer_id', userId)
-    .gte('time', new Date().toISOString())
-    .order('time', { ascending: true });
+    .eq("organizer_id", userId)
+    .gt("time", new Date().toISOString());
 
   return { data, error };
 }
 
+// get the list of previous events hosted by a user
 export async function getUserPastHostedEvents(userId: string) {
   const { data, error } = await supabase
-    .from('events')
+    .from("events")
     .select(`
       *,
-      reservations (
-        id,
-        profile_id,
-        confirmation_code,
-        is_checked_in,
-        checked_in_at,
-        profiles (
-          first_name,
-          last_name,
-          email
-        )
-      )
+      reservations:event_id (*)
     `)
-    .eq('organizer_id', userId)
-    .lt('time', new Date().toISOString())
-    .order('time', { ascending: false });
+    .eq("organizer_id", userId)
+    .lt("time", new Date().toISOString());
 
   return { data, error };
 }

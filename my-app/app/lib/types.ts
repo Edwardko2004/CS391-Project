@@ -18,15 +18,17 @@ export interface Event {
     time_length: number;
     created_at: string;
     image_url: string;
+    organizer_id: string;
 }
 
 // define the Profile type and its fields
 export interface Profile {
-    id: number;
+    id: string;
     first_name: string;
     last_name: string;
     email: string;
     created_at: string;
+    bio: string;
 }
 
 // define the Reservation type and its fields
@@ -35,4 +37,6 @@ export interface Reservation {
     event_id: number;
     profile_id: number;
     created_at: string;
+    is_checked_in: boolean;
+    confirmation_code: string;
 }

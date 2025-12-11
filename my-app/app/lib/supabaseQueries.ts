@@ -1,93 +1,60 @@
+// lib/supabaseQueries.ts
+// provide data for supabase queries on profile
+
 import { supabase } from './supabaseClient';
 
+// get the list of upcoming reservations
 export async function getUserUpcomingReservations(userId: string) {
   const { data, error } = await supabase
-    .from('reservations')
+    .from("reservations")
     .select(`
       *,
-      events!inner (
-        title,
-        time,
-        location,
-        organizer,
-        status
-      )
+      event: events!inner (*)
     `)
-    .eq('profile_id', userId)
-    .gte('events.time', new Date().toISOString())
-    .order('events.time', { ascending: true });
+    .eq("profile_id", userId)
+    .gt("event.time", new Date().toISOString());
 
-  return { data, error };
+  return {data, error}
 }
 
+// get the list of previous reservations
 export async function getUserPastReservations(userId: string) {
   const { data, error } = await supabase
-    .from('reservations')
+    .from("reservations")
     .select(`
       *,
-      events!inner (
-        title,
-        time,
-        location,
-        organizer,
-        status
-      )
+      event: events!inner (*)
     `)
-    .eq('profile_id', userId)
-    .lt('events.time', new Date().toISOString())
-    .order('events.time', { ascending: false });
+    .eq("profile_id", userId)
+    .lt("event.time", new Date().toISOString());
 
-  return { data, error };
+  return {data, error}
 }
 
 export async function getUserUpcomingHostedEvents(userId: string) {
   const { data, error } = await supabase
-    .from('events')
+    .from("events")
     .select(`
       *,
-      reservations (
-        id,
-        profile_id,
-        confirmation_code,
-        is_checked_in,
-        checked_in_at,
-        profiles (
-          first_name,
-          last_name,
-          email
-        )
-      )
+      reservations (*)
     `)
-    .eq('organizer_id', userId)
-    .gte('time', new Date().toISOString())
-    .order('time', { ascending: true });
+    .eq("organizer_id", userId)
+    .gt("time", new Date().toISOString())
 
-  return { data, error };
+  return {data, error}
 }
 
 export async function getUserPastHostedEvents(userId: string) {
   const { data, error } = await supabase
-    .from('events')
+    .from("events")
     .select(`
       *,
-      reservations (
-        id,
-        profile_id,
-        confirmation_code,
-        is_checked_in,
-        checked_in_at,
-        profiles (
-          first_name,
-          last_name,
-          email
-        )
-      )
+      reservations (*)
     `)
-    .eq('organizer_id', userId)
-    .lt('time', new Date().toISOString())
-    .order('time', { ascending: false });
+    .eq("organizer_id", userId)
+    .lt("time", new Date().toISOString())
 
-  return { data, error };
+  return {data, error}
 }
 
 export async function checkInReservation(reservationId: number) {

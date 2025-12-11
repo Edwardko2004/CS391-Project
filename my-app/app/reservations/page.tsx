@@ -3,24 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabaseClient';
+import { Reservation, Event } from '../lib/types';
 import { getUserUpcomingReservations, getUserPastReservations } from '../lib/supabaseQueries';
 import { Calendar, MapPin, User, Hash, CheckCircle, Clock, CheckCheck, Copy } from 'lucide-react';
 
-interface ReservationWithEvent {
-  id: number;
-  event_id: number;
-  profile_id: string;
-  created_at: string;
-  confirmation_code: string;
-  is_checked_in: boolean;
-  checked_in_at: string | null;
-  events: {
-    title: string;
-    time: string;
-    location: string;
-    organizer: string;
-    status: string;
-  };
+
+interface EventReservation {
+  event: Event,
+  reservation: Reservation,
 }
 
 export default function ReservationsPage() {
@@ -28,8 +18,8 @@ export default function ReservationsPage() {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
-  const [upcomingReservations, setUpcomingReservations] = useState<ReservationWithEvent[]>([]);
-  const [pastReservations, setPastReservations] = useState<ReservationWithEvent[]>([]);
+  const [upcomingEvents, setUpcomingEvents] = useState<EventReservation[]>([]);
+  const [pastEvents, setPastEvents] = useState<EventReservation[]>([]);
 
   useEffect(() => {
     fetchUserData();
@@ -54,9 +44,23 @@ export default function ReservationsPage() {
       const pastPromise = getUserPastReservations(userId);
       
       const [upcomingResult, pastResult] = await Promise.all([upcomingPromise, pastPromise]);
+      console.log("RAW ROWS:", pastResult.data);
       
-      if (upcomingResult.data) setUpcomingReservations(upcomingResult.data as ReservationWithEvent[]);
-      if (pastResult.data) setPastReservations(pastResult.data as ReservationWithEvent[]);
+      const upcoming: EventReservation[] = upcomingResult.data?.map((row) => ({
+        event: row.event as Event,
+        reservation: { ...row } as Reservation,
+      })) ?? [];
+
+      const past: EventReservation[] = pastResult.data?.map((row) => ({
+        event: row.event as Event,
+        reservation: { ...row } as Reservation,
+      })) ?? [];
+
+      if (upcomingResult.data) setUpcomingEvents(upcoming);
+      if (pastResult.data) setPastEvents(past);
+
+      console.log(upcoming);
+      console.log(past);
     } catch (error) {
       console.error('Error fetching reservations:', error);
     } finally {
@@ -84,7 +88,7 @@ export default function ReservationsPage() {
     });
   };
 
-  const currentReservations = activeTab === 'upcoming' ? upcomingReservations : pastReservations;
+  const currentEvents = activeTab === 'upcoming' ? upcomingEvents : pastEvents;
 
   if (loading) {
     return (
@@ -117,7 +121,7 @@ export default function ReservationsPage() {
           >
             <div className="flex items-center gap-2">
               <Clock size={16} />
-              Upcoming ({upcomingReservations.length})
+              Upcoming ({upcomingEvents.length})
             </div>
           </button>
           <button
@@ -130,13 +134,13 @@ export default function ReservationsPage() {
           >
             <div className="flex items-center gap-2">
               <CheckCheck size={16} />
-              Past ({pastReservations.length})
+              Past ({pastEvents.length})
             </div>
           </button>
         </div>
 
         {/* Reservations List */}
-        {currentReservations.length === 0 ? (
+        {currentEvents.length === 0 ? (
           <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-700 rounded-lg p-8 text-center">
             <Calendar size={48} className="mx-auto mb-4 text-gray-500" />
             <h3 className="text-xl font-semibold mb-2">No {activeTab} reservations</h3>
@@ -154,20 +158,20 @@ export default function ReservationsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {currentReservations.map((reservation) => (
+            {currentEvents.map((evres) => (
               <div
-                key={reservation.id}
+                key={evres.reservation.id}
                 className="bg-gray-900/50 backdrop-blur-sm border border-gray-700 rounded-lg p-4 hover:border-cyan-500/30 transition-colors"
               >
                 <div className="flex justify-between items-start mb-3">
                   <div>
-                    <h3 className="font-semibold mb-1 line-clamp-2">{reservation.events.title}</h3>
+                    <h3 className="font-semibold mb-1 line-clamp-2">{evres.event.title}</h3>
                     <div className="flex items-center text-sm text-gray-400 mb-2">
                       <User size={12} className="mr-1" />
-                      <span className="truncate">By {reservation.events.organizer}</span>
+                      <span className="truncate">By {evres.event.organizer}</span>
                     </div>
                   </div>
-                  {reservation.is_checked_in && (
+                  {evres.reservation.is_checked_in && (
                     <span className="bg-green-900/30 text-green-400 text-xs px-2 py-1 rounded-full flex items-center">
                       <CheckCircle size={10} className="mr-1" />
                       Checked In
@@ -178,11 +182,11 @@ export default function ReservationsPage() {
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center text-sm">
                     <Calendar size={14} className="mr-2 text-cyan-400 flex-shrink-0" />
-                    <span>{formatDate(reservation.events.time)}</span>
+                    <span>{formatDate(evres.event.time)}</span>
                   </div>
                   <div className="flex items-center text-sm">
                     <MapPin size={14} className="mr-2 text-cyan-400 flex-shrink-0" />
-                    <span className="text-gray-300 line-clamp-2">{reservation.events.location}</span>
+                    <span className="text-gray-300 line-clamp-2">{evres.event.location}</span>
                   </div>
                 </div>
 
@@ -194,10 +198,10 @@ export default function ReservationsPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <code className="bg-gray-800 px-3 py-1 rounded text-cyan-300 font-mono text-sm">
-                        {reservation.confirmation_code}
+                        {evres.reservation.confirmation_code}
                       </code>
                       <button
-                        onClick={() => copyConfirmationCode(reservation.confirmation_code)}
+                        onClick={() => copyConfirmationCode(evres.reservation.confirmation_code)}
                         className="text-gray-400 hover:text-cyan-400 transition text-sm"
                         title="Copy code"
                       >
