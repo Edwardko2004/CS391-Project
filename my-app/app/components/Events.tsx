@@ -81,6 +81,7 @@ export default function Events() {
           status: event.status,
           longitude: event.longitude,
           latitude: event.latitude,
+          organizer_id: event.organizer_id,
           reservations: event.reservations?.[0]?.count ?? 0,
           capacity: event.capacity,
           time: event.time,
