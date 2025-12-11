@@ -63,7 +63,7 @@ export default function AboutPage() {
             {/* Team Member 3 */}
             <div className="flex flex-col items-center">
               <img
-                src="/team3.jpg"
+                src="https://cs-people.bu.edu/rohan204/assets/Profile.jpg"
                 alt="Rohaan Navin Chablani Mirpuri"
                 className="w-32 h-32 rounded-full object-cover shadow-lg border-1 border-cyan-500"
               />
