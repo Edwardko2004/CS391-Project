@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '../lib/supabaseClient'
+import { supabase } from '@/lib/supabaseClient'
 import { Profile } from '../lib/types'
 import { User, Mail, Calendar, Edit, Save, X, Hash, Copy, Ticket, Users, LogOut, Plus, ArrowRight } from 'lucide-react'
 import { getUserUpcomingReservations, getUserPastReservations, getUserUpcomingHostedEvents, getUserPastHostedEvents } from '../lib/supabaseQueries'
