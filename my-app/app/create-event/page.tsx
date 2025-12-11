@@ -11,6 +11,7 @@ import {
   Users,
   CheckCircle,
   AlertCircle,
+  Image,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 
@@ -31,11 +32,40 @@ export default function CreateEventPage() {
     status: "open",
     description: "",
     organizer: "",
+    image_url: "",       
     tags: [] as string[],
     date: "",
     time: "",
     time_length: "",
   });
+
+  const [profile, setProfile] = useState<any>(null);
+
+  useEffect(() => {
+    const load = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session) {
+        router.push("/login");
+        return;
+      }
+
+      setUser(session.user);
+
+      const { data: profileData, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
+
+      if (!error) setProfile(profileData);
+
+      setLoading(false);
+    };
+
+    load();
+  }, [router]);
+
 
   const handleMapSelect = (lat: number, lng: number, address: string) => {
     setCoords({ lat, lng });
@@ -79,21 +109,23 @@ export default function CreateEventPage() {
 
     try {
       const { error } = await supabase.from("events").insert([
-        {
-          title: form.title || null,
-          location: form.location || null,
-          latitude: coords.lat,
-          longitude: coords.lng,
-          capacity: form.capacity ? parseInt(form.capacity) : null,
-          status: form.status,
-          created_at: new Date().toISOString(),
-          description: form.description || null,
-          organizer: form.organizer || null,
-          tags: tagArray,
-          time: eventDateTime ? eventDateTime.toISOString() : null,
-          time_length: form.time_length ? parseInt(form.time_length) : null,
-        },
-      ]);
+      {
+        title: form.title || null,
+        location: form.location || null,
+        latitude: coords.lat,
+        longitude: coords.lng,
+        capacity: form.capacity ? parseInt(form.capacity) : null,
+        status: form.status,
+        created_at: new Date().toISOString(),
+        description: form.description || null,
+        image_url: form.image_url || null,
+        organizer: form.organizer || null,  
+        organizer_id: profile?.id,            // ADD the FK
+        tags: tagArray,
+        time: eventDateTime ? eventDateTime.toISOString() : null,
+        time_length: form.time_length ? parseInt(form.time_length) : null,
+      },
+    ]);
 
       if (error) throw error;
 
@@ -109,6 +141,7 @@ export default function CreateEventPage() {
         tags: [] as string[],
         date: "",
         time: "",
+        image_url: "",
         time_length: "",
       });
     } catch (err: any) {
@@ -118,23 +151,6 @@ export default function CreateEventPage() {
       setSubmitting(false);
     }
   };
-
-  useEffect(() => {
-    const checkUser = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session) {
-        router.push("/login");
-      } else {
-        setUser(session.user);
-      }
-      setLoading(false);
-    };
-
-    checkUser();
-  }, [router]);
 
   if (loading) {
     return (
@@ -220,6 +236,23 @@ export default function CreateEventPage() {
                 </div>
               </div>
               <br />
+
+              {/* Image URL */}
+            <div>
+              <label className="text-xs text-gray-300 font-medium">Image URL</label>
+              <div className="relative mt-2">
+                <input
+                  name="image_url"
+                  value={form.image_url}
+                  onChange={handleChange}
+                  placeholder="https://example.com/event-image.jpg"
+                  className="w-full p-3 pl-10 bg-gray-900 border border-gray-700 text-white rounded-lg 
+                            focus:ring-2 focus:ring-cyan-500 focus:outline-none"
+                />
+                <Image className="absolute left-3 top-3 text-cyan-400" />
+              </div>
+            </div>
+
               {/* Location */}
               <div>
                 <label className="text-xs text-gray-300 font-medium">Location</label>
@@ -236,7 +269,7 @@ export default function CreateEventPage() {
                 </div>
               </div>
             </div>
-
+      
             {/* Date & Time */}
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -270,7 +303,7 @@ export default function CreateEventPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-xs text-gray-300 font-medium">Capacity</label>
                 <input
@@ -364,13 +397,14 @@ export default function CreateEventPage() {
 
         {/* PREVIEW CARD */}
         <aside className="sticky top-20">
+          
           <div className="bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-gray-700 shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-lg font-bold text-cyan-300">Event Preview</h3>
                 <p className="text-xs text-gray-400 mt-1">Live preview of what attendees will see.</p>
               </div>
-
+                
               <div className="flex items-center gap-2">
                 {form.status === "open" ? (
                   <div className="flex items-center gap-1 text-green-300 text-sm">
@@ -385,6 +419,25 @@ export default function CreateEventPage() {
             </div>
 
             {/* Card */}
+
+            {/* Landscape Event Image */}
+              <div className="w-full h-40 rounded-xl overflow-hidden bg-gray-900 border border-gray-700">
+                {form.image_url ? (
+                  <img
+                    src={form.image_url}
+                    alt="Event image"
+                    className="w-full h-full object-cover"
+                    onError={(e) => { e.currentTarget.src = ""; }} // fallback if broken URL
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-cyan-400/10 border border-cyan-600">
+                    <div className="text-cyan-300 font-semibold text-lg">
+                      {form.title ? form.title : "Event Image Preview"}
+                    </div>
+                  </div>
+                )}
+              </div>
+
             <div className="mt-6 bg-gradient-to-br from-gray-900/50 to-gray-900/30 rounded-xl p-5 border border-gray-700 overflow-hidden">
               <div className="flex items-start gap-4">
                 <div className="w-14 h-14 rounded-lg bg-cyan-400/10 flex items-center justify-center border border-cyan-600 flex-shrink-0">
