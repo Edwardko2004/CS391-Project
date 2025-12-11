@@ -127,6 +127,7 @@ export default function EventDetailPage() {
       tags: data.tags,
       location: data.location,
       organizer: data.organizer,
+      organizer_id: data.organizer_id,
       status: data.status,
       latitude: data.latitude,      
       longitude: data.longitude,    
