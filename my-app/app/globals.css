@@ -18,12 +18,33 @@ body {
 }
 
 .cardinfo {
-  color:#97a5adff;
+  color: #97a5adff;
 }
 
-.ant-card {
-  background-color: #2d3748 !important;
-  border-color: #2d3748;
+.cardinfo2 {
+  color: #ffffff;
+}
+
+.custom-switch .ant-switch {
+  background-color: #2eabf2 !important; /* when OFF */
+}
+
+.custom-switch .ant-switch.ant-switch-checked {
+  background-color: #2eabf2 !important; /* when ON */
+}
+
+/* Special Spark glass card style – only when you add .spark-card */
+.ant-card.spark-card {
+  background: transparent !important;
+}
+
+.ant-btn.eventcard-btn {
+  border: none !important;
+  box-shadow: none !important;
+}
+/* Only apply border styling to EventCard */
+.ant-card.eventcard {
+  border: 1px solid rgba(55, 65, 81, 0.7) !important;
 }
 
 .ant-layout-header {
