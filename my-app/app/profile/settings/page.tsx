@@ -259,7 +259,7 @@ export default function SettingsPage() {
           <button
             onClick={handleSaveProfile}
             disabled={saving}
-            className="flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-black font-semibold py-3 px-6 rounded-lg hover:opacity-90 transition disabled:opacity-50"
+            className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-medium py-3 px-6 rounded-lg transition flex items-center justify-center gap-2 disabled:opacity-50"
           >
             <Save size={20} />
             {saving ? 'Saving...' : 'Save & Refresh'}
@@ -301,7 +301,7 @@ export default function SettingsPage() {
           <button
             onClick={handleChangePassword}
             disabled={changingPassword || !formData.newPassword || !formData.confirmPassword}
-            className="flex items-center justify-center gap-2 border border-cyan-500 text-cyan-400 font-semibold py-3 px-6 rounded-lg hover:bg-cyan-500/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-medium py-3 px-6 rounded-lg transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Lock size={20} />
             {changingPassword ? 'Updating...' : 'Update Password & Refresh'}

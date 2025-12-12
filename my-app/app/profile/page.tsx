@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
-import { Profile } from '../lib/types'
 import { User, Mail, Calendar, Edit, Save, X, Hash, Copy, Ticket, Users, LogOut, Plus, ArrowRight } from 'lucide-react'
 import { getUserUpcomingReservations, getUserPastReservations, getUserUpcomingHostedEvents, getUserPastHostedEvents } from '../lib/supabaseQueries'
 
@@ -13,7 +12,11 @@ export default function ProfilePage() {
   const [editingBio, setEditingBio] = useState(false)
   const [bioText, setBioText] = useState('')
   const [bioLoading, setBioLoading] = useState(false)
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [userEmail, setUserEmail] = useState<string>('')
+  const [firstName, setFirstName] = useState<string>('')
+  const [lastName, setLastName] = useState<string>('')
+  const [createdAt, setCreatedAt] = useState<string>('')
+  const [userId, setUserId] = useState<string>('')
   const [message, setMessage] = useState<string>('')
   const [messageType, setMessageType] = useState<'success' | 'error'>('success')
   const [stats, setStats] = useState({
@@ -31,17 +34,12 @@ export default function ProfilePage() {
       return
     }
 
-    // make api call to find the profile associated with the user 
-    const { data: profileData, error: profileError } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single();
-
-    if (profileError) throw profileError;
-    
-    setProfile(profileData);
-    setBioText(profileData.bio);
+    setUserEmail(user.email || '')
+    setFirstName(user.user_metadata?.first_name || '')
+    setLastName(user.user_metadata?.last_name || '')
+    setCreatedAt(user.created_at || new Date().toISOString())
+    setUserId(user.id || '')
+    setBioText(user.user_metadata?.bio || '')
     
     // Fetch stats
     await fetchUserStats(user.id)
@@ -59,10 +57,10 @@ export default function ProfilePage() {
       ]);
 
       setStats({
-        upcomingReservations: Array.isArray(upcomingRes.data) ? upcomingRes.data.length : 0,
-        pastReservations: Array.isArray(pastRes.data) ? pastRes.data.length : 0,
-        upcomingHosted: Array.isArray(upcomingHosted.data) ? upcomingHosted.data.length : 0,
-        pastHosted: Array.isArray(pastHosted.data) ? pastHosted.data.length : 0
+        upcomingReservations: upcomingRes.data?.length || 0,
+        pastReservations: pastRes.data?.length || 0,
+        upcomingHosted: upcomingHosted.data?.length || 0,
+        pastHosted: pastHosted.data?.length || 0
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -95,19 +93,17 @@ export default function ProfilePage() {
       const { data: { user } } = await supabase.auth.getUser()
       
       if (!user) throw new Error('No user found')
-      if (!profile) throw new Error('No profile found')
-
-      // update the profile model on supabase
-      const { data: dataProfile, error: errorProfile } = await supabase
-        .from('profiles')
-        .update({ bio: bioText })  // only update this field
-        .eq('id', profile.id)
-        .select()
-        .single()
-
-      if (errorProfile) throw errorProfile
       
+      const { error } = await supabase.auth.updateUser({
+        data: {
+          ...user.user_metadata,
+          bio: bioText
+        }
+      })
+
       clearTimeout(forceRefreshTimeout)
+
+      if (error) throw error
       
       setMessage('✓ Bio saved! Refreshing...')
       
@@ -127,7 +123,7 @@ export default function ProfilePage() {
   const handleCancelEdit = () => {
     const resetBio = async () => {
       const { data: { user } } = await supabase.auth.getUser()
-      setBioText(profile ? profile.bio : '');
+      setBioText(user?.user_metadata?.bio || '')
       setEditingBio(false)
     }
     resetBio()
@@ -135,7 +131,7 @@ export default function ProfilePage() {
 
   const copyUserId = async () => {
     try {
-      await navigator.clipboard.writeText(profile ? profile.id : '')
+      await navigator.clipboard.writeText(userId)
       setMessageType('success')
       setMessage('✓ User ID copied!')
       setTimeout(() => setMessage(''), 2000)
@@ -161,16 +157,15 @@ export default function ProfilePage() {
     )
   }
 
-  const displayName = profile ? `${profile.first_name} ${profile.last_name}` : ''; 
+  const displayName = firstName && lastName 
+    ? `${firstName} ${lastName}`
+    : firstName 
+      ? firstName
+      : userEmail.split('@')[0]
 
   const formatUserId = (id: string) => {
     if (id.length <= 12) return id
     return `${id.substring(0, 8)}...${id.substring(id.length - 4)}`
-  }
-
-  // temporary measure for null profile
-  if (profile == null) {
-    return (<></>)
   }
 
   return (
@@ -278,11 +273,11 @@ export default function ProfilePage() {
                   <h2 className="text-xl font-bold mb-1">{displayName}</h2>
                   <p className="text-gray-400 flex items-center gap-2 text-sm">
                     <Mail size={14} />
-                    <span className="truncate">{profile.email}</span>
+                    <span className="truncate">{userEmail}</span>
                   </p>
                   <p className="text-gray-400 flex items-center gap-2 text-sm mt-1">
                     <Calendar size={14} />
-                    Joined {new Date(profile.created_at).toLocaleDateString()}
+                    Joined {new Date(createdAt).toLocaleDateString()}
                   </p>
                 </div>
               </div>
@@ -370,14 +365,14 @@ export default function ProfilePage() {
                 </button>
                 <button
                   onClick={() => router.push('/events')}
-                  className="w-full border border-cyan-500 text-cyan-400 font-medium py-2.5 rounded-lg hover:bg-cyan-500/10 transition flex items-center justify-center gap-2"
+                  className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-medium py-2.5 rounded-lg transition flex items-center justify-center gap-2"
                 >
                   <Calendar size={16} />
                   Browse Events
                 </button>
                 <button
                   onClick={() => router.push('/profile/settings')}
-                  className="w-full border border-gray-600 text-white py-2.5 rounded-lg hover:bg-white/5 transition flex items-center justify-center gap-2"
+                  className="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-medium py-2.5 rounded-lg transition flex items-center justify-center gap-2"
                 >
                   <Edit size={16} />
                   Settings
@@ -397,10 +392,10 @@ export default function ProfilePage() {
                   <div className="flex items-center gap-1">
                     <span 
                       className="text-xs font-mono bg-gray-800 px-2 py-1 rounded text-cyan-300 cursor-help truncate max-w-[100px]"
-                      title={`Click to copy: ${profile.id}`}
+                      title={`Click to copy: ${userId}`}
                       onClick={copyUserId}
                     >
-                      {formatUserId(profile.id)}
+                      {formatUserId(userId)}
                     </span>
                     <button
                       onClick={copyUserId}
@@ -418,13 +413,13 @@ export default function ProfilePage() {
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400 text-sm">Member Since</span>
                   <span className="text-white text-sm">
-                    {new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    {new Date(createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400 text-sm">Profile Complete</span>
-                  <span className={profile.first_name ? "text-green-400" : "text-yellow-400"}>
-                    {profile.first_name ? '✓' : '✗'}
+                  <span className={firstName ? "text-green-400" : "text-yellow-400"}>
+                    {firstName ? '✓' : '✗'}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">
