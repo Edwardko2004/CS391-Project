@@ -63,7 +63,7 @@ export default function AboutPage() {
             {/* Team Member 1 */}
             <div className="flex flex-col items-center">
               <img
-                src="assets/profHeadshot.jpg"
+                src="assets/Imran.jpg"
                 alt="Imran Hussien"
                 className="w-32 h-32 rounded-full object-cover shadow-lg border border-cyan-500"
               />
@@ -109,7 +109,7 @@ export default function AboutPage() {
             {/* Team Member 5 */}
             <div className="flex flex-col items-center">
               <img
-                src="assets/Anson.jpeg"
+                src="assets/anson.png"
                 alt="Anson Zhu"
                 className="w-32 h-32 rounded-full object-cover shadow-lg border border-cyan-500"
               />
