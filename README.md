@@ -24,4 +24,5 @@ Users can log in, sign up, and create food event posts to reduce food waste and 
     - Sprint Review: Demonstrated completed features (e.g., working login UI, Supabase integration).
     - Retrospective: Present and discuss what worked well and what to improve in the next sprint.
 
-
+*Live Project URL*
+- https://cs-391-project-fawn.vercel.app/
