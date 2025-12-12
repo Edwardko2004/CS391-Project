@@ -74,7 +74,7 @@ export default function AboutPage() {
             {/* Team Member 2 */}
             <div className="flex flex-col items-center">
               <img
-                src="assets/edward.PNG"
+                src="assets/edward.png"
                 alt="Edward Ko"
                 className="w-32 h-32 rounded-full object-cover shadow-lg border border-cyan-500"
               />
