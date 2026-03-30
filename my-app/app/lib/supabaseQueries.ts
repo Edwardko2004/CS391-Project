@@ -1,9 +1,5 @@
-// lib/supabaseQueries.ts
-// provide data for supabase queries on profile
-
 import { supabase } from './supabaseClient';
 
-// get the list of upcoming reservations
 export async function getUserUpcomingReservations(userId: string) {
   const { data, error } = await supabase
     .from("reservations")
@@ -13,11 +9,9 @@ export async function getUserUpcomingReservations(userId: string) {
     `)
     .eq("profile_id", userId)
     .gt("event.time", new Date().toISOString());
-
   return {data, error}
 }
 
-// get the list of previous reservations
 export async function getUserPastReservations(userId: string) {
   const { data, error } = await supabase
     .from("reservations")
@@ -27,7 +21,6 @@ export async function getUserPastReservations(userId: string) {
     `)
     .eq("profile_id", userId)
     .lt("event.time", new Date().toISOString());
-
   return {data, error}
 }
 
@@ -40,7 +33,6 @@ export async function getUserUpcomingHostedEvents(userId: string) {
     `)
     .eq("organizer_id", userId)
     .gt("time", new Date().toISOString())
-
   return {data, error}
 }
 
@@ -53,7 +45,6 @@ export async function getUserPastHostedEvents(userId: string) {
     `)
     .eq("organizer_id", userId)
     .lt("time", new Date().toISOString())
-
   return {data, error}
 }
 
@@ -65,8 +56,6 @@ export async function checkInReservation(reservationId: number) {
       checked_in_at: new Date().toISOString()
     })
     .eq('id', reservationId)
-    .select()
-    .single();
-
+    .select();
   return { data, error };
 }

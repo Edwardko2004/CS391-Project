@@ -5,15 +5,13 @@ import { useRouter } from 'next/navigation';
 import { supabase } from '../lib/supabaseClient';
 import { Reservation, Event, Profile } from '../lib/types';
 import { getUserUpcomingHostedEvents, getUserPastHostedEvents, checkInReservation } from '../lib/supabaseQueries';
-import { Calendar, MapPin, Users, Hash, CheckCircle, XCircle, User, Copy } from 'lucide-react';
+import { Calendar, MapPin, Users, Hash, CheckCircle, XCircle } from 'lucide-react';
 
-// combine event type with list of associated reservations
 interface EventReservations {
   event: Event,
   reservations: Reservation[],
 }
 
-// combine profile with reservation type
 interface ProfileReservation {
   profile: Profile,
   reservation: Reservation,
@@ -35,47 +33,50 @@ export default function HostedEventsPage() {
 
   const fetchUserData = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    
     if (!user) {
       router.push('/login');
       return;
     }
-
     setUserId(user.id);
-    fetchHostedEvents(user.id);
+    await fetchHostedEvents(user.id);
   };
 
-  const fetchHostedEvents = async (userId: string) => {
+  const fetchHostedEvents = async (uid: string, currentSelectedId?: number) => {
     try {
       setLoading(true);
-      const upcomingPromise = getUserUpcomingHostedEvents(userId);
-      const pastPromise = getUserPastHostedEvents(userId);
-      
-      const [upcomingResult, pastResult] = await Promise.all([upcomingPromise, pastPromise]);
+      const [upcomingResult, pastResult] = await Promise.all([
+        getUserUpcomingHostedEvents(uid),
+        getUserPastHostedEvents(uid),
+      ]);
 
-      console.log(upcomingResult);
-      console.log(pastResult);
-      
+      let resolvedSelected: EventReservations | null = null;
+
       if (upcomingResult.data) {
-        const upcoming: EventReservations[] = upcomingResult.data?.map((row) => ({
+        const upcoming: EventReservations[] = upcomingResult.data.map((row) => ({
           reservations: row.reservations as Reservation[],
-          event: { ... row} as Event,
-        })) ?? [];
-
+          event: { ...row } as Event,
+        }));
         setUpcomingEvents(upcoming);
-        if (upcoming.length > 0) handleSelected(upcoming[0]);
+        const stillSelected = upcoming.find(e => e.event.id === currentSelectedId);
+        if (stillSelected) resolvedSelected = stillSelected;
+        else if (upcoming.length > 0) resolvedSelected = upcoming[0];
       }
 
       if (pastResult.data) {
-        const past: EventReservations[] = pastResult.data?.map((row) => ({
+        const past: EventReservations[] = pastResult.data.map((row) => ({
           reservations: row.reservations as Reservation[],
-          event: { ... row} as Event,
-        })) ?? [];
-
+          event: { ...row } as Event,
+        }));
         setPastEvents(past);
-        if (past.length > 0 && !selectedEvent) {
-          handleSelected(past[0]);
+        if (!resolvedSelected) {
+          const stillSelected = past.find(e => e.event.id === currentSelectedId);
+          if (stillSelected) resolvedSelected = stillSelected;
+          else if (past.length > 0) resolvedSelected = past[0];
         }
+      }
+
+      if (resolvedSelected) {
+        await handleSelected(resolvedSelected);
       }
     } catch (error) {
       console.error('Error fetching hosted events:', error);
@@ -84,13 +85,18 @@ export default function HostedEventsPage() {
     }
   };
 
-  const handleCheckIn = async (reservationId: number) => {
+  const handleCheckIn = async (e: React.MouseEvent, reservationId: number) => {
+    e.stopPropagation();
     try {
-      await checkInReservation(reservationId);
-      fetchHostedEvents(userId);
-    } catch (error) {
-      console.error('Error checking in:', error);
-      alert('Failed to check in. Please try again.');
+      const { data, error } = await checkInReservation(reservationId);
+      if (error) {
+        alert('Check-in failed: ' + error.message);
+        return;
+      }
+      await fetchHostedEvents(userId, selectedEvent?.event.id);
+    } catch (err) {
+      console.error('Unexpected check-in error:', err);
+      alert('Unexpected error: ' + String(err));
     }
   };
 
@@ -105,7 +111,8 @@ export default function HostedEventsPage() {
     });
   };
 
-  const copyConfirmationCode = async (code: string) => {
+  const copyConfirmationCode = async (e: React.MouseEvent, code: string) => {
+    e.stopPropagation();
     try {
       await navigator.clipboard.writeText(code);
       alert('Confirmation code copied!');
@@ -125,33 +132,31 @@ export default function HostedEventsPage() {
 
   const handleSelected = async (evres: EventReservations) => {
     setSelectedEvent(evres);
-    getEventProfiles(evres);
-  }
+    await getEventProfiles(evres);
+  };
 
-  // get the list of profiles from the reservations 
   const getEventProfiles = async (event: EventReservations) => {
-    if (!event) return [];
-
-    // get the list of all ids of profiles, no duplicates
-    const profileIds = [... new Set(event.reservations?.map(r => r.profile_id))];
-
-    // fetch the profiles from supabase
+    if (!event || !event.reservations?.length) {
+      setSelectedProfiles([]);
+      return;
+    }
+    const profileIds = [...new Set(event.reservations.map(r => r.profile_id))];
     const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .in("id", profileIds);
-
-    if (error) throw error;
-
+      .from('profiles')
+      .select('*')
+      .in('id', profileIds);
+    if (error) {
+      console.error('Error fetching profiles:', error);
+      return;
+    }
     if (data) {
       const prres: ProfileReservation[] = data.map((row) => ({
         profile: row as Profile,
         reservation: event.reservations.find(r => r.profile_id === row.id) as Reservation,
-      })) ?? [];
-
+      }));
       setSelectedProfiles(prres);
     }
-  }
+  };
 
   if (loading) {
     return (
@@ -172,7 +177,6 @@ export default function HostedEventsPage() {
           <p className="text-gray-400">Manage your events and check in attendees</p>
         </div>
 
-        {/* Tabs */}
         <div className="flex mb-6 bg-gray-900/50 rounded-lg p-1 w-fit">
           <button
             onClick={() => {
@@ -180,9 +184,7 @@ export default function HostedEventsPage() {
               if (upcomingEvents.length > 0) handleSelected(upcomingEvents[0]);
             }}
             className={`px-4 py-2 rounded-md font-medium transition ${
-              activeTab === 'upcoming'
-                ? 'bg-cyan-600 text-white'
-                : 'text-gray-400 hover:text-white'
+              activeTab === 'upcoming' ? 'bg-cyan-600 text-white' : 'text-gray-400 hover:text-white'
             }`}
           >
             <div className="flex items-center gap-2">
@@ -196,9 +198,7 @@ export default function HostedEventsPage() {
               if (pastEvents.length > 0) handleSelected(pastEvents[0]);
             }}
             className={`px-4 py-2 rounded-md font-medium transition ${
-              activeTab === 'past'
-                ? 'bg-cyan-600 text-white'
-                : 'text-gray-400 hover:text-white'
+              activeTab === 'past' ? 'bg-cyan-600 text-white' : 'text-gray-400 hover:text-white'
             }`}
           >
             <div className="flex items-center gap-2">
@@ -209,14 +209,11 @@ export default function HostedEventsPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Events List */}
           <div className="lg:col-span-2">
             {currentEvents.length === 0 ? (
               <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-700 rounded-lg p-8 text-center">
                 <Calendar size={48} className="mx-auto mb-4 text-gray-500" />
-                <h3 className="text-xl font-semibold mb-2">
-                  No {activeTab} hosted events
-                </h3>
+                <h3 className="text-xl font-semibold mb-2">No {activeTab} hosted events</h3>
                 <p className="text-gray-400 mb-4">
                   {activeTab === 'upcoming'
                     ? "You're not hosting any upcoming events."
@@ -238,9 +235,7 @@ export default function HostedEventsPage() {
                       key={evres.event.id}
                       onClick={() => handleSelected(evres)}
                       className={`bg-gray-900/50 backdrop-blur-sm border rounded-lg p-4 cursor-pointer transition-all hover:border-cyan-500/50 ${
-                        selectedEvent?.event.id === evres.event.id
-                          ? 'border-cyan-500'
-                          : 'border-gray-700'
+                        selectedEvent?.event.id === evres.event.id ? 'border-cyan-500' : 'border-gray-700'
                       }`}
                     >
                       <div className="flex justify-between items-start">
@@ -252,7 +247,6 @@ export default function HostedEventsPage() {
                           </div>
                         </div>
                       </div>
-                      
                       <div className="mt-3 grid grid-cols-2 gap-3">
                         <div className="bg-gray-800/30 p-2 rounded">
                           <div className="flex items-center text-green-400">
@@ -276,7 +270,6 @@ export default function HostedEventsPage() {
             )}
           </div>
 
-          {/* Event Details Sidebar */}
           <div className="lg:col-span-1">
             {selectedEvent ? (
               <div className="bg-gray-900/50 backdrop-blur-sm border border-gray-700 rounded-lg p-4">
@@ -298,7 +291,6 @@ export default function HostedEventsPage() {
                   </div>
                 </div>
 
-                {/* Attendee List */}
                 <div className="space-y-2 max-h-[400px] overflow-y-auto">
                   {selectedProfiles && selectedProfiles.map((prres: ProfileReservation) => (
                     <div
@@ -318,8 +310,8 @@ export default function HostedEventsPage() {
                         </div>
                         {!prres.reservation.is_checked_in && activeTab === 'upcoming' && (
                           <button
-                            onClick={() => handleCheckIn(prres.reservation.id)}
-                            className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs px-2 py-1 rounded transition ml-2"
+                            onClick={(e) => handleCheckIn(e, prres.reservation.id)}
+                            className="bg-cyan-600 hover:bg-cyan-700 text-white text-xs px-2 py-1 rounded transition ml-2 shrink-0"
                           >
                             Check In
                           </button>
@@ -328,9 +320,9 @@ export default function HostedEventsPage() {
                       <div className="flex justify-between items-center text-xs">
                         <div className="flex items-center">
                           <Hash size={10} className="mr-1 text-cyan-400" />
-                          <code 
+                          <code
                             className="font-mono bg-black/30 px-2 py-1 rounded cursor-pointer hover:bg-black/50"
-                            onClick={() => copyConfirmationCode(prres.reservation.confirmation_code)}
+                            onClick={(e) => copyConfirmationCode(e, prres.reservation.confirmation_code)}
                           >
                             {prres.reservation.confirmation_code}
                           </code>
